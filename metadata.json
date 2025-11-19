@@ -1,0 +1,7 @@
+{
+  "name": "DreamGarden AI",
+  "description": "Design your dream garden with AI. Generate stunning landscape layouts and use text prompts to edit your garden photos instantly.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
