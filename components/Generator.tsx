@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { generateGardenImage } from '../services/gemini';
-import { LoadingState, GeneratedImage, AppMode } from '../types';
-import { Wand2, Download, Edit3 } from 'lucide-react';
+import { generateHighQualityImage } from '../services/gemini';
+import { LoadingState, GeneratedImage, AppMode, AspectRatio } from '../types';
+import { Wand2, Download, Edit3, Square, Smartphone, Monitor } from 'lucide-react';
 
 interface GeneratorProps {
   onImageGenerated: (img: GeneratedImage) => void;
@@ -16,31 +16,29 @@ const SUGGESTIONS = [
 ];
 
 const LOADING_MESSAGES = [
-  "Analyzing your garden dreams...",
-  "Selecting the perfect plants...",
-  "Calculating sunlight and shadows...",
-  "Rendering photorealistic textures...",
-  "Adding final blooming touches..."
+  "Dreaming up your garden...",
+  "Calculating light and shadows...",
+  "Planting virtual seeds...",
+  "Rendering in 4K resolution...",
+  "Polishing the leaves..."
 ];
 
 export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode }) => {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [result, setResult] = useState<GeneratedImage | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('1:1');
 
-  // Cycle through loading messages to give users a sense of progress
   useEffect(() => {
     if (loading.operation !== 'generating') return;
-
     let messageIndex = 0;
     const interval = setInterval(() => {
       messageIndex = (messageIndex + 1) % LOADING_MESSAGES.length;
       setLoading(prev => {
-        if (!prev.isLoading) return prev; // Safety check
+        if (!prev.isLoading) return prev;
         return { ...prev, message: LOADING_MESSAGES[messageIndex] };
       });
     }, 2000);
-
     return () => clearInterval(interval);
   }, [loading.operation]);
 
@@ -51,7 +49,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
     setResult(null);
 
     try {
-      const base64Data = await generateGardenImage(prompt + " photorealistic, high quality garden design");
+      const base64Data = await generateHighQualityImage(prompt, aspectRatio);
       const newImage: GeneratedImage = {
         id: crypto.randomUUID(),
         dataUrl: base64Data,
@@ -71,11 +69,17 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
     }
   };
 
+  const ratios: { val: AspectRatio, icon: any, label: string }[] = [
+    { val: '1:1', icon: Square, label: 'Square' },
+    { val: '9:16', icon: Smartphone, label: 'Portrait' },
+    { val: '16:9', icon: Monitor, label: 'Landscape' },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto p-6 w-full">
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-stone-800 mb-2">Design from Scratch</h2>
-        <p className="text-stone-600">Describe your dream garden and watch it come to life.</p>
+        <h2 className="text-3xl font-bold text-stone-800 mb-2">Design with Imagen 4</h2>
+        <p className="text-stone-600">Create photorealistic garden designs in any format.</p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 mb-8 transition-all hover:shadow-md">
@@ -88,6 +92,23 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
             className="w-full p-4 rounded-xl border border-stone-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none min-h-[120px]"
           />
           
+          <div className="flex gap-4 items-center flex-wrap">
+             <span className="text-sm font-medium text-stone-600 mr-2">Shape:</span>
+             {ratios.map(r => (
+               <button
+                 key={r.val}
+                 onClick={() => setAspectRatio(r.val)}
+                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors border ${
+                   aspectRatio === r.val 
+                     ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                     : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'
+                 }`}
+               >
+                 <r.icon size={14} /> {r.label}
+               </button>
+             ))}
+          </div>
+
           <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
             {SUGGESTIONS.map((s, i) => (
               <button
@@ -113,7 +134,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
             ) : (
               <>
                 <Wand2 size={20} />
-                Generate Design
+                Generate High-Res Design
               </>
             )}
           </button>
@@ -128,11 +149,11 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
       {/* Result Area */}
       {result && (
         <div className="animate-fade-in-up bg-white rounded-2xl shadow-lg overflow-hidden border border-stone-200">
-          <div className="relative group">
+          <div className="relative group bg-stone-100">
             <img 
               src={result.dataUrl} 
               alt="Generated Garden" 
-              className="w-full h-auto object-cover max-h-[600px]"
+              className="w-full h-auto object-contain max-h-[600px] mx-auto"
             />
           </div>
           <div className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-stone-50 border-t border-stone-100">
@@ -142,7 +163,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
             <div className="flex gap-3">
                <a
                 href={result.dataUrl}
-                download={`dream-garden-${Date.now()}.png`}
+                download={`dream-garden-${Date.now()}.jpg`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 font-medium text-sm transition-colors shadow-sm"
               >
                 <Download size={16} />
@@ -153,7 +174,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition-colors shadow-sm"
               >
                 <Edit3 size={16} />
-                Edit with AI
+                Edit
               </button>
             </div>
           </div>

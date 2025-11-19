@@ -1,13 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sprout, Sun, Droplets, Calendar } from 'lucide-react';
+import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus } from 'lucide-react';
 
 interface PlantDetailPopoverProps {
   plant: Plant;
   rect: DOMRect;
+  enhancedDescription?: string;
+  isEnhancing?: boolean;
+  onEnhance?: () => void;
+  onGenerateImage?: () => void;
+  isGeneratingImage?: boolean;
 }
 
-export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({ plant, rect }) => {
+export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({ 
+  plant, 
+  rect,
+  enhancedDescription,
+  isEnhancing,
+  onEnhance,
+  onGenerateImage,
+  isGeneratingImage
+}) => {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +50,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({ plant, r
     if (top < padding) top = padding;
 
     setPosition({ top, left });
-  }, [rect]);
+  }, [rect, enhancedDescription]); // Re-calculate when description changes size
 
   return (
     <div 
@@ -55,9 +68,36 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({ plant, r
         </div>
       </div>
       
-      <p className="text-stone-600 text-sm leading-relaxed mb-4 border-b border-stone-100 pb-4">
-        {plant.description}
-      </p>
+      <div className="relative group mb-4 pb-4 border-b border-stone-100 min-h-[80px]">
+        <p className="text-stone-600 text-sm leading-relaxed">
+          {enhancedDescription || plant.description}
+        </p>
+        
+        {/* AI Actions Row */}
+        <div className="mt-3 flex gap-2 pointer-events-auto">
+           {!enhancedDescription && onEnhance && (
+             <button 
+               onClick={onEnhance}
+               disabled={isEnhancing}
+               className="text-[10px] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-medium transition-colors"
+             >
+               {isEnhancing ? <span className="animate-spin">⏳</span> : <Sparkles size={10} />}
+               {isEnhancing ? 'Writing...' : 'Enhance Description'}
+             </button>
+           )}
+           
+           {onGenerateImage && (
+             <button 
+               onClick={onGenerateImage}
+               disabled={isGeneratingImage}
+               className="text-[10px] flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium transition-colors"
+             >
+                {isGeneratingImage ? <span className="animate-spin">⏳</span> : <ImagePlus size={10} />}
+                {isGeneratingImage ? 'Generating...' : 'New Image'}
+             </button>
+           )}
+        </div>
+      </div>
       
       <div className="space-y-3">
         <div>

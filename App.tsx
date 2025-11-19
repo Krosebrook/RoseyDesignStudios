@@ -4,6 +4,9 @@ import { Hero } from './components/Hero';
 import { Generator } from './components/Generator';
 import { Editor } from './components/Editor';
 import { PlantLibrary } from './components/PlantLibrary';
+import { VideoAnimator } from './components/VideoAnimator';
+import { ImageAnalyzer } from './components/ImageAnalyzer';
+import { VoiceChat } from './components/VoiceChat';
 import { AppMode, GeneratedImage } from './types';
 
 const App: React.FC = () => {
@@ -13,7 +16,6 @@ const App: React.FC = () => {
 
   const handleImageGenerated = (img: GeneratedImage) => {
     setCurrentImage(img);
-    // Stay on generator page to show result, but update state so Editor can use it if navigated to
   };
 
   const handleAddToDesign = (plantName: string) => {
@@ -43,6 +45,24 @@ const App: React.FC = () => {
               pendingInstruction={pendingInstruction}
               onClearInstruction={() => setPendingInstruction(null)}
             />
+          </div>
+        )}
+
+        {mode === AppMode.ANIMATE && (
+          <div className="animate-fade-in">
+             <VideoAnimator />
+          </div>
+        )}
+
+        {mode === AppMode.ANALYZE && (
+          <div className="animate-fade-in">
+             <ImageAnalyzer />
+          </div>
+        )}
+
+        {mode === AppMode.VOICE && (
+          <div className="animate-fade-in">
+             <VoiceChat />
           </div>
         )}
 

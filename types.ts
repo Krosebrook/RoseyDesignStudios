@@ -9,10 +9,13 @@ export enum AppMode {
   HOME = 'HOME',
   GENERATE = 'GENERATE',
   EDIT = 'EDIT',
-  LIBRARY = 'LIBRARY'
+  LIBRARY = 'LIBRARY',
+  ANIMATE = 'ANIMATE',
+  ANALYZE = 'ANALYZE',
+  VOICE = 'VOICE'
 }
 
-export type OperationType = 'idle' | 'generating' | 'editing' | 'uploading';
+export type OperationType = 'idle' | 'generating' | 'editing' | 'uploading' | 'analyzing' | 'connecting';
 
 export interface LoadingState {
   isLoading: boolean;
@@ -20,6 +23,8 @@ export interface LoadingState {
   message: string;
   error?: string | null;
 }
+
+export type AspectRatio = '1:1' | '3:4' | '4:3' | '9:16' | '16:9';
 
 export type SunlightRequirement = 'Full Sun' | 'Partial Shade' | 'Full Shade';
 export type WaterRequirement = 'Drought-tolerant' | 'Moderate' | 'High';

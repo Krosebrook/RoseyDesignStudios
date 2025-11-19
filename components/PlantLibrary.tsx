@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plant } from '../types';
-import { generatePlantImage } from '../services/gemini';
+import { generatePlantImage, generatePlantDescription } from '../services/gemini';
 import { usePlantFiltering } from '../hooks/usePlantFiltering';
 import { PlantCard } from './PlantCard';
 import { PlantFilters } from './PlantFilters';
@@ -22,31 +22,59 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
   const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
 
+  // State for enhanced descriptions
+  const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, string>>({});
+  const [enhancingDescIds, setEnhancingDescIds] = useState<Set<string>>(new Set());
+
   // Hover state for Popover
   const [hoveredPlantData, setHoveredPlantData] = useState<{ plant: Plant; rect: DOMRect } | null>(null);
 
-  const handleGenerateAIImage = async (e: React.MouseEvent, plant: Plant) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleGenerateAIImage = async (e?: React.MouseEvent, plant?: Plant) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
-    if (generatingIds.has(plant.id)) return;
+    const targetPlant = plant || hoveredPlantData?.plant;
+    if (!targetPlant) return;
 
-    setGeneratingIds(prev => new Set(prev).add(plant.id));
+    if (generatingIds.has(targetPlant.id)) return;
+
+    setGeneratingIds(prev => new Set(prev).add(targetPlant.id));
     
     try {
-        const newImage = await generatePlantImage(plant.name, plant.description);
+        const newImage = await generatePlantImage(targetPlant.name, targetPlant.description);
         setGeneratedImages(prev => {
-          const existing = prev[plant.id] || [];
-          return { ...prev, [plant.id]: [...existing, newImage] };
+          const existing = prev[targetPlant.id] || [];
+          return { ...prev, [targetPlant.id]: [...existing, newImage] };
         });
     } catch (err) {
         console.error("Failed to generate plant image", err);
     } finally {
         setGeneratingIds(prev => {
             const next = new Set(prev);
-            next.delete(plant.id);
+            next.delete(targetPlant.id);
             return next;
         });
+    }
+  };
+
+  const handleEnhanceDescription = async (plant: Plant) => {
+    if (enhancingDescIds.has(plant.id)) return;
+
+    setEnhancingDescIds(prev => new Set(prev).add(plant.id));
+
+    try {
+      const newDesc = await generatePlantDescription(plant.name, plant.description);
+      setEnhancedDescriptions(prev => ({ ...prev, [plant.id]: newDesc }));
+    } catch (err) {
+      console.error("Failed to generate description", err);
+    } finally {
+      setEnhancingDescIds(prev => {
+        const next = new Set(prev);
+        next.delete(plant.id);
+        return next;
+      });
     }
   };
 
@@ -113,7 +141,12 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
       {hoveredPlantData && (
         <PlantDetailPopover 
           plant={hoveredPlantData.plant} 
-          rect={hoveredPlantData.rect} 
+          rect={hoveredPlantData.rect}
+          enhancedDescription={enhancedDescriptions[hoveredPlantData.plant.id]}
+          isEnhancing={enhancingDescIds.has(hoveredPlantData.plant.id)}
+          onEnhance={() => handleEnhanceDescription(hoveredPlantData.plant)}
+          isGeneratingImage={generatingIds.has(hoveredPlantData.plant.id)}
+          onGenerateImage={() => handleGenerateAIImage(undefined, hoveredPlantData.plant)}
         />
       )}
     </div>

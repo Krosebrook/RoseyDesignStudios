@@ -114,11 +114,11 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             </span>
         </div>
 
-        {/* AI Generator Button */}
+        {/* AI Generator Button - Always visible on touch, hover effect on desktop */}
         <button
           onClick={(e) => onGenerateAI(e, plant)}
           disabled={isGenerating}
-          className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-md transition-all hover:scale-105 z-10 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+          className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-md transition-all hover:scale-105 z-10 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0"
           title="Generate new unique variation"
         >
           {isGenerating ? (
