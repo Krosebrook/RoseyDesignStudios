@@ -5,6 +5,7 @@ import { usePlantFiltering } from '../hooks/usePlantFiltering';
 import { PlantCard } from './PlantCard';
 import { PlantFilters } from './PlantFilters';
 import { PlantDetailPopover } from './PlantDetailPopover';
+import { SeasonalSpotlight } from './SeasonalSpotlight';
 import { Search } from 'lucide-react';
 
 interface PlantLibraryProps {
@@ -93,6 +94,14 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
         <h2 className="text-3xl font-bold text-stone-800 mb-2">Plant Database</h2>
         <p className="text-stone-600">Explore our curated collection of garden favorites.</p>
       </div>
+
+      {/* Seasonal Spotlight Section */}
+      <SeasonalSpotlight 
+        onAddToDesign={onAddToDesign}
+        generatedImages={generatedImages}
+        generatingIds={generatingIds}
+        onGenerateAI={handleGenerateAIImage}
+      />
 
       <PlantFilters 
         filters={filters} 

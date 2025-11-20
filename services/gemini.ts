@@ -166,6 +166,16 @@ export const getQuickTip = async (): Promise<string> => {
   return response.text || "Water your plants early in the morning.";
 };
 
+// --- SEASONAL TIPS (FLASH LITE) ---
+export const getSeasonalGardeningTip = async (season: string): Promise<string> => {
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash-lite-latest',
+    contents: `Provide a single, helpful, and interesting gardening tip for the ${season} season. Keep it under 25 words. Focus on what to plant or care for.`,
+  });
+  return response.text || `It's a great time to get out in the garden and enjoy the ${season} weather!`;
+};
+
 // --- EXISTING UTILS ---
 
 export const generatePlantImage = async (plantName: string, description: string): Promise<string> => {
