@@ -1,20 +1,51 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# DreamGarden AI
 
-# Run and deploy your AI Studio app
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Sprint Status](https://img.shields.io/badge/Sprint-Complete-green)
 
-This contains everything you need to run your app locally.
+**DreamGarden AI** is a comprehensive landscape design application powered by Google's Gemini ecosystem. It allows users to generate photorealistic garden designs, edit existing photos using natural language, animate static images into videos, and interact with an AI gardening assistant via voice.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1McPaq1CZQkNkRR0CbuaBzr5EbmUT3Rha
+## Latest Updates (AI Integration Sprint)
+We have successfully integrated the full suite of Gemini models:
+- **Imagen 4.0** for high-fidelity generation.
+- **Veo 3.1** for video animation.
+- **Gemini 2.5 Flash/Pro** for editing and analysis.
+- **Gemini Live API** for real-time voice interaction.
 
-## Run Locally
+## Features
 
-**Prerequisites:**  Node.js
+### 🎨 Design & Generate
+- **Text-to-Image:** Generate stunning garden layouts using **Imagen 4.0**.
+- **Aspect Ratio Control:** Support for Square, Portrait, and Landscape formats.
 
+### ✏️ AI Editor
+- **Natural Language Editing:** Use **Gemini 2.5 Flash** to add plants, change textures, or modify lighting.
+- **Drag & Drop:** Drag plants from the library directly onto your canvas.
+- **3D Perspective:** Toggle between 2D and a simulated 3D parallax view.
+- **In-Browser Camera:** Capture photos of your yard directly within the app.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 🎥 Animation (Veo)
+- **Image-to-Video:** Transform static garden photos into cinematic videos using **Veo 3.1**.
+
+### 🧠 Analysis & Vision
+- **Plant Doctor:** Analyze photos using **Gemini 3 Pro** to identify plants and diagnose issues.
+- **Search Grounding:** Verify AI advice with real-time Google Search results.
+
+### 🗣️ Voice Assistant
+- **Live API:** Have a real-time, low-latency conversation with an expert gardening AI.
+
+## Setup
+
+1. Clone the repository.
+2. Install dependencies: `npm install`
+3. Set your API Key:
+   ```bash
+   export API_KEY="your_google_genai_api_key"
+   ```
+4. Run the development server: `npm start`
+
+## Tech Stack
+- **Frontend:** React 19, TypeScript, Tailwind CSS
+- **AI:** @google/genai SDK (Gemini 2.5, 3.0, Veo, Imagen)
+- **Audio:** Web Audio API for PCM streaming

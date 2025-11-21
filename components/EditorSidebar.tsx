@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Upload, ImagePlus, ArrowRight, Sprout, Search } from 'lucide-react';
+import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { PlantCard } from './PlantCard';
 
@@ -18,6 +19,7 @@ interface EditorSidebarProps {
   filteredPlants: Plant[];
   onDragStart: (e: React.DragEvent, plantName: string) => void;
   onAddToDesign: (name: string) => void;
+  onOpenCamera: () => void;
 }
 
 export const EditorSidebar: React.FC<EditorSidebarProps> = ({
@@ -34,7 +36,8 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   setPlantSearch,
   filteredPlants,
   onDragStart,
-  onAddToDesign
+  onAddToDesign,
+  onOpenCamera
 }) => {
   return (
     <div className="lg:col-span-4 flex flex-col h-full max-h-[800px]">
@@ -65,31 +68,45 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
             {/* Upload Section */}
             <div className={`bg-white p-6 rounded-2xl shadow-sm border border-stone-200 ${loading.operation === 'uploading' ? 'opacity-50 pointer-events-none' : ''}`}>
               <h3 className="font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <Upload size={18} /> Source Image
+                <ImagePlus size={18} /> Source Image
               </h3>
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-stone-300 hover:border-primary-400 hover:bg-primary-50 rounded-xl p-8 text-center cursor-pointer transition-all group relative"
-              >
-                <input 
+              
+              <div className="grid grid-cols-2 gap-3">
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-stone-200 hover:border-primary-400 hover:bg-primary-50 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center gap-2 text-stone-500 hover:text-primary-600 group"
+                  >
+                    <div className="bg-stone-100 group-hover:bg-primary-100 p-3 rounded-full transition-colors">
+                         <Upload size={24} className="text-stone-400 group-hover:text-primary-500" />
+                    </div>
+                    <span className="text-xs font-medium">Upload File</span>
+                  </div>
+                  
+                  <div 
+                    onClick={onOpenCamera}
+                    className="border-2 border-dashed border-stone-200 hover:border-indigo-400 hover:bg-indigo-50 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center gap-2 text-stone-500 hover:text-indigo-600 group"
+                  >
+                    <div className="bg-stone-100 group-hover:bg-indigo-100 p-3 rounded-full transition-colors">
+                        <Camera size={24} className="text-stone-400 group-hover:text-indigo-500" />
+                    </div>
+                    <span className="text-xs font-medium">Take Photo</span>
+                  </div>
+              </div>
+              
+              <input 
                   type="file" 
                   ref={fileInputRef} 
                   onChange={onFileUpload} 
                   className="hidden" 
                   accept="image/*"
                 />
-                {loading.operation === 'uploading' ? (
-                  <div className="flex flex-col items-center gap-2 text-primary-600">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current"></div>
-                    <span className="text-sm font-medium">{loading.message}</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-stone-500 group-hover:text-primary-600">
-                    <ImagePlus size={32} />
-                    <span className="text-sm font-medium">Click to upload photo</span>
-                  </div>
+                
+                {loading.operation === 'uploading' && (
+                   <div className="mt-4 text-center text-xs text-primary-600 flex items-center justify-center gap-2 bg-primary-50 p-2 rounded-lg">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                      {loading.message}
+                   </div>
                 )}
-              </div>
             </div>
 
             {/* Text Edit Section */}

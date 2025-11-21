@@ -1,5 +1,5 @@
-import React from 'react';
-import { ImagePlus, Plus, X, RefreshCw, Download, Sprout } from 'lucide-react';
+import React, { useState } from 'react';
+import { ImagePlus, Plus, X, RefreshCw, Download, Sprout, Box, Layers } from 'lucide-react';
 import { LoadingState } from '../types';
 
 interface PlantMarker {
@@ -37,10 +37,46 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   canUndo,
   historyLength
 }) => {
+  const [is3DMode, setIs3DMode] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!is3DMode || !currentImage) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    
+    setMousePos({ x, y });
+  };
+
   return (
     <div className="lg:col-span-8">
       <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden h-full min-h-[600px] flex flex-col">
-        <div className="flex-1 bg-stone-100 relative flex items-center justify-center overflow-hidden">
+        
+        {/* View Toggle Header */}
+        {currentImage && (
+            <div className="bg-stone-50 border-b border-stone-200 p-2 flex justify-end gap-2">
+                <button
+                  onClick={() => setIs3DMode(false)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!is3DMode ? 'bg-white shadow text-primary-700' : 'text-stone-500 hover:bg-stone-200'}`}
+                >
+                    <Layers size={14} /> 2D View
+                </button>
+                <button
+                  onClick={() => setIs3DMode(true)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${is3DMode ? 'bg-white shadow text-indigo-600' : 'text-stone-500 hover:bg-stone-200'}`}
+                >
+                    <Box size={14} /> 3D Perspective
+                </button>
+            </div>
+        )}
+
+        <div 
+            className="flex-1 bg-stone-100 relative flex items-center justify-center overflow-hidden perspective-1000"
+            onMouseMove={handleMouseMove}
+            style={{ perspective: '1000px' }}
+        >
           {!currentImage ? (
             <div className="text-center text-stone-400 p-12">
               <ImagePlus size={64} className="mx-auto mb-4 opacity-50" />
@@ -49,16 +85,55 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             </div>
           ) : (
             <div 
-              className={`relative w-full h-full flex items-center justify-center bg-stone-900/5 transition-all duration-200 ${isDraggingOver ? 'bg-primary-50/50' : ''}`}
+              className={`relative w-full h-full flex items-center justify-center transition-all duration-200 
+                ${isDraggingOver ? 'bg-primary-50/50' : 'bg-stone-900/5'}
+              `}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
             >
-              <img 
-                src={currentImage} 
-                alt="Garden to edit" 
-                className={`max-w-full max-h-[75vh] object-contain shadow-2xl transition-transform duration-200 ${isDraggingOver ? 'scale-95 brightness-90' : ''}`}
-              />
+              <div 
+                className="relative transition-transform duration-100 ease-out max-w-full max-h-[75vh]"
+                style={is3DMode ? {
+                    transform: `rotateY(${mousePos.x * 10}deg) rotateX(${-mousePos.y * 10}deg) scale(0.9)`,
+                    transformStyle: 'preserve-3d'
+                } : {}}
+              >
+                  <img 
+                    src={currentImage} 
+                    alt="Garden to edit" 
+                    className={`max-w-full max-h-[75vh] object-contain shadow-2xl transition-transform duration-200 
+                        ${isDraggingOver ? 'scale-95 brightness-90' : ''}
+                        ${is3DMode ? 'shadow-2xl rounded-lg' : ''}
+                    `}
+                  />
+
+                  {/* Simulated Depth Layer for Markers in 3D Mode */}
+                  {markers.map(marker => (
+                    <div
+                      key={marker.id}
+                      className="absolute group/marker z-20"
+                      style={{ 
+                        left: `${marker.x}%`, 
+                        top: `${marker.y}%`,
+                        transform: is3DMode 
+                            ? `translate(-50%, -50%) translateZ(30px)` 
+                            : `translate(-50%, -50%)` 
+                      }}
+                    >
+                      {/* Pin Head */}
+                      <div className="w-8 h-8 bg-white text-primary-600 rounded-full shadow-lg flex items-center justify-center border-2 border-primary-500 cursor-pointer transition-transform hover:scale-110">
+                        <Sprout size={16} className="group-hover/marker:hidden" />
+                        <X size={16} className="hidden group-hover/marker:block text-red-500" onClick={() => onRemoveMarker(marker.id)} />
+                      </div>
+                      
+                      {/* Tooltip label */}
+                      <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none">
+                         Remove {marker.name}
+                      </div>
+                    </div>
+                  ))}
+              </div>
               
               {/* Drop Target Overlay */}
               {isDraggingOver && (
@@ -68,30 +143,6 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   </div>
                 </div>
               )}
-              
-              {/* Pending Plant Markers */}
-              {markers.map(marker => (
-                <div
-                  key={marker.id}
-                  className="absolute group/marker z-20"
-                  style={{ 
-                    left: `${marker.x}%`, 
-                    top: `${marker.y}%`,
-                    transform: 'translate(-50%, -50%)' 
-                  }}
-                >
-                  {/* Pin Head */}
-                  <div className="w-8 h-8 bg-white text-primary-600 rounded-full shadow-lg flex items-center justify-center border-2 border-primary-500 cursor-pointer transition-transform hover:scale-110">
-                    <Sprout size={16} className="group-hover/marker:hidden" />
-                    <X size={16} className="hidden group-hover/marker:block text-red-500" onClick={() => onRemoveMarker(marker.id)} />
-                  </div>
-                  
-                  {/* Tooltip label */}
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none">
-                     Remove {marker.name}
-                  </div>
-                </div>
-              ))}
 
               {/* Loading Overlay */}
               {loading.isLoading && loading.operation === 'editing' && (
@@ -101,6 +152,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                       <p className="font-medium text-indigo-900">{loading.message}</p>
                    </div>
                 </div>
+              )}
+              
+              {is3DMode && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none">
+                      Move mouse to rotate perspective
+                  </div>
               )}
             </div>
           )}

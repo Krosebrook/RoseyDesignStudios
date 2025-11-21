@@ -3,21 +3,18 @@ import { editGardenImage } from '../services/gemini';
 import { LoadingState, GeneratedImage } from '../types';
 import { PLANTS } from '../data/plants';
 import { useImageHistory } from '../hooks/useImageHistory';
+import { useMarkers } from '../hooks/useMarkers';
 import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
+import { Save, Check } from 'lucide-react';
+import { CameraModal } from './CameraModal';
+import { EDIT_LOADING_MESSAGES } from '../data/constants';
 
 interface EditorProps {
   initialImage: GeneratedImage | null;
+  initialHistory?: string[];
   pendingInstruction?: string | null;
   onClearInstruction?: () => void;
-}
-
-interface PlantMarker {
-  id: string;
-  name: string;
-  x: number; // percentage
-  y: number; // percentage
-  instruction: string;
 }
 
 // Helper: Calculate natural language position description from drop coordinates
@@ -33,15 +30,7 @@ const getPositionDescription = (x: number, y: number, width: number, height: num
   return `${vertical} ${horizontal}`.trim();
 };
 
-const EDIT_LOADING_MESSAGES = [
-  "Analyzing image structure...",
-  "Identifying areas to modify...",
-  "Blending new elements...",
-  "Adjusting lighting and shadows...",
-  "Finalizing your edits..."
-];
-
-export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction, onClearInstruction }) => {
+export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pendingInstruction, onClearInstruction }) => {
   const { 
     currentImage, 
     setCurrentImage, 
@@ -50,11 +39,15 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
     undo, 
     resetHistory, 
     canUndo 
-  } = useImageHistory(initialImage ? initialImage.dataUrl : null);
+  } = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
+
+  // Marker State Logic Extracted
+  const { markers, addMarker, removeMarkerById, clearMarkers } = useMarkers();
 
   const [editPrompt, setEditPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
-  const [markers, setMarkers] = useState<PlantMarker[]>([]);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const [showCamera, setShowCamera] = useState(false);
   
   // UI State
   const [activeTab, setActiveTab] = useState<'tools' | 'plants'>('tools');
@@ -66,11 +59,15 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
   // Reset state when a NEW initial image is provided (based on ID change)
   useEffect(() => {
     if (initialImage) {
-      resetHistory(initialImage.dataUrl);
+      if (initialHistory && initialHistory.length > 0) {
+          resetHistory(initialImage.dataUrl, initialHistory);
+      } else {
+          resetHistory(initialImage.dataUrl);
+      }
       setEditPrompt('');
-      setMarkers([]);
+      clearMarkers();
     }
-  }, [initialImage?.id, resetHistory]);
+  }, [initialImage?.id, resetHistory, initialHistory, clearMarkers]);
 
   // Helper to append instruction to prompt
   const updatePromptWithInstruction = (instruction: string) => {
@@ -116,11 +113,18 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
         const result = reader.result as string;
         setCurrentImage(result);
         resetHistory(result); // Reset history on new upload
-        setMarkers([]); // Clear previous markers
+        clearMarkers(); // Clear previous markers
         setLoading({ isLoading: false, operation: 'idle', message: '' });
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCameraCapture = (imageData: string) => {
+      setCurrentImage(imageData);
+      resetHistory(imageData);
+      clearMarkers();
+      setShowCamera(false);
   };
 
   const handleEdit = async () => {
@@ -132,7 +136,7 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
       const newImageData = await editGardenImage(currentImage, editPrompt);
       pushToHistory(newImageData);
       setEditPrompt(''); 
-      setMarkers([]); // Clear markers as they are now "baked in"
+      clearMarkers(); // Clear markers as they are now "baked in"
       setLoading({ isLoading: false, operation: 'idle', message: '' });
     } catch (err) {
       setLoading({ 
@@ -141,6 +145,25 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
         message: '', 
         error: 'Failed to edit image. Try a different prompt.' 
       });
+    }
+  };
+
+  const handleSaveProject = () => {
+    if (!currentImage) return;
+    
+    try {
+      const savedData = {
+        currentImage,
+        history,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('dreamGarden_saved', JSON.stringify(savedData));
+      
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error("Failed to save project", e);
+      alert("Could not save project. Local storage might be full.");
     }
   };
 
@@ -185,29 +208,21 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
       
       updatePromptWithInstruction(instruction);
       
-      // Add visual marker
-      setMarkers(prev => [...prev, {
-        id: crypto.randomUUID(),
-        name: plantName,
-        x: xPercent,
-        y: yPercent,
-        instruction
-      }]);
+      // Add visual marker via hook
+      addMarker(plantName, xPercent, yPercent, instruction);
     }
   };
 
-  const removeMarker = (markerId: string) => {
-    const markerToRemove = markers.find(m => m.id === markerId);
-    if (markerToRemove) {
+  const handleRemoveMarker = (markerId: string) => {
+    const removedMarker = removeMarkerById(markerId);
+    if (removedMarker) {
       // Attempt to remove the instruction text
       setEditPrompt(prev => {
-        let newPrompt = prev.replace(markerToRemove.instruction, '');
+        let newPrompt = prev.replace(removedMarker.instruction, '');
         newPrompt = newPrompt.replace(/\.\s*\./g, '.').replace(/\s\s+/g, ' ').trim();
         if (newPrompt.startsWith('.')) newPrompt = newPrompt.substring(1).trim();
         return newPrompt;
       });
-      
-      setMarkers(prev => prev.filter(m => m.id !== markerId));
     }
   };
 
@@ -217,9 +232,26 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
 
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
-       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-stone-800 mb-2">AI Garden Editor</h2>
-        <p className="text-stone-600">Upload a photo or use your design, then use text to make magic happen.</p>
+       <div className="mb-8 text-center flex items-center justify-center relative">
+        <div>
+          <h2 className="text-3xl font-bold text-stone-800 mb-2">AI Garden Editor</h2>
+          <p className="text-stone-600">Upload a photo or use your design, then use text to make magic happen.</p>
+        </div>
+        {/* Save Button positioned absolutely on desktop, static on mobile */}
+        <div className="absolute right-0 top-0 hidden md:block">
+           <button 
+             onClick={handleSaveProject}
+             disabled={!currentImage}
+             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm border ${
+                saveStatus === 'saved' 
+                  ? 'bg-green-50 border-green-200 text-green-700' 
+                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+             }`}
+           >
+             {saveStatus === 'saved' ? <Check size={18} /> : <Save size={18} />}
+             {saveStatus === 'saved' ? 'Saved!' : 'Save Project'}
+           </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -238,6 +270,7 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
           filteredPlants={filteredPlants}
           onDragStart={handleDragStart}
           onAddToDesign={(name) => updatePromptWithInstruction(`Add ${name}`)}
+          onOpenCamera={() => setShowCamera(true)}
         />
         
         <EditorCanvas
@@ -248,12 +281,36 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, pendingInstruction
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onRemoveMarker={removeMarker}
+          onRemoveMarker={handleRemoveMarker}
           onUndo={undo}
           canUndo={canUndo}
           historyLength={history.length}
         />
       </div>
+      
+      {/* Mobile Save Button */}
+      <div className="md:hidden mt-6 flex justify-center">
+         <button 
+             onClick={handleSaveProject}
+             disabled={!currentImage}
+             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm border ${
+                saveStatus === 'saved' 
+                  ? 'bg-green-50 border-green-200 text-green-700' 
+                  : 'bg-white border-stone-200 text-stone-600'
+             }`}
+           >
+             {saveStatus === 'saved' ? <Check size={18} /> : <Save size={18} />}
+             {saveStatus === 'saved' ? 'Design Saved!' : 'Save Project to Device'}
+           </button>
+      </div>
+
+      {/* Camera Modal */}
+      {showCamera && (
+          <CameraModal 
+            onCapture={handleCameraCapture} 
+            onClose={() => setShowCamera(false)} 
+          />
+      )}
     </div>
   );
 };

@@ -7,19 +7,33 @@ import { PlantLibrary } from './components/PlantLibrary';
 import { VideoAnimator } from './components/VideoAnimator';
 import { ImageAnalyzer } from './components/ImageAnalyzer';
 import { VoiceChat } from './components/VoiceChat';
-import { AppMode, GeneratedImage } from './types';
+import { AppMode, GeneratedImage, SavedDesign } from './types';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<AppMode>(AppMode.HOME);
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
+  const [currentHistory, setCurrentHistory] = useState<string[] | undefined>(undefined);
   const [pendingInstruction, setPendingInstruction] = useState<string | null>(null);
 
   const handleImageGenerated = (img: GeneratedImage) => {
     setCurrentImage(img);
+    setCurrentHistory(undefined); // Reset history when new image generated
   };
 
   const handleAddToDesign = (plantName: string) => {
     setPendingInstruction(`Add ${plantName}`);
+    setMode(AppMode.EDIT);
+  };
+
+  const handleResumeDesign = (saved: SavedDesign) => {
+    const recoveredImage: GeneratedImage = {
+      id: crypto.randomUUID(), // New ID to force Editor refresh/init
+      dataUrl: saved.currentImage,
+      prompt: 'Resumed Design',
+      timestamp: saved.timestamp
+    };
+    setCurrentImage(recoveredImage);
+    setCurrentHistory(saved.history);
     setMode(AppMode.EDIT);
   };
 
@@ -29,7 +43,7 @@ const App: React.FC = () => {
       
       <main className="pt-6 pb-20">
         {mode === AppMode.HOME && (
-          <Hero setMode={setMode} />
+          <Hero setMode={setMode} onResumeDesign={handleResumeDesign} />
         )}
         
         {mode === AppMode.GENERATE && (
@@ -42,6 +56,7 @@ const App: React.FC = () => {
           <div className="animate-fade-in">
             <Editor 
               initialImage={currentImage} 
+              initialHistory={currentHistory}
               pendingInstruction={pendingInstruction}
               onClearInstruction={() => setPendingInstruction(null)}
             />

@@ -1,12 +1,35 @@
-import React from 'react';
-import { AppMode } from '../types';
-import { ArrowRight, Wand2, Upload, BookOpen } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AppMode, SavedDesign } from '../types';
+import { ArrowRight, Wand2, Upload, BookOpen, History } from 'lucide-react';
 
 interface HeroProps {
   setMode: (mode: AppMode) => void;
+  onResumeDesign?: (design: SavedDesign) => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ setMode }) => {
+export const Hero: React.FC<HeroProps> = ({ setMode, onResumeDesign }) => {
+  const [savedDesign, setSavedDesign] = useState<SavedDesign | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dreamGarden_saved');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.currentImage && parsed.history) {
+          setSavedDesign(parsed);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved design", e);
+      }
+    }
+  }, []);
+
+  const handleResume = () => {
+    if (savedDesign && onResumeDesign) {
+      onResumeDesign(savedDesign);
+    }
+  };
+
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center max-w-5xl mx-auto">
       <div className="mb-8 animate-fade-in-up">
@@ -20,6 +43,29 @@ export const Hero: React.FC<HeroProps> = ({ setMode }) => {
           Visualize landscape layouts, edit photos with AI, and discover the perfect plants for your space.
         </p>
       </div>
+
+      {/* Resume Banner if available */}
+      {savedDesign && (
+        <div className="w-full max-w-2xl mb-8 animate-fade-in">
+           <button 
+             onClick={handleResume}
+             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-4 rounded-xl shadow-lg flex items-center justify-between group transition-all"
+           >
+              <div className="flex items-center gap-4">
+                 <div className="bg-stone-700 p-2 rounded-lg">
+                    <History size={24} className="text-stone-300" />
+                 </div>
+                 <div className="text-left">
+                    <p className="font-bold">Resume Previous Design</p>
+                    <p className="text-xs text-stone-400">Last saved {new Date(savedDesign.timestamp).toLocaleDateString()} {new Date(savedDesign.timestamp).toLocaleTimeString()}</p>
+                 </div>
+              </div>
+              <div className="bg-white/10 p-2 rounded-full group-hover:bg-white/20 transition-colors">
+                 <ArrowRight size={20} />
+              </div>
+           </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
         <button

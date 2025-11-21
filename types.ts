@@ -40,3 +40,9 @@ export interface Plant {
   seasons: Season[];
   imageUrl: string;
 }
+
+export interface SavedDesign {
+  currentImage: string;
+  history: string[];
+  timestamp: number;
+}

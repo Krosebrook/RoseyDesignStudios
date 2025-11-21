@@ -2,26 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { generateHighQualityImage } from '../services/gemini';
 import { LoadingState, GeneratedImage, AppMode, AspectRatio } from '../types';
 import { Wand2, Download, Edit3, Square, Smartphone, Monitor } from 'lucide-react';
+import { GENERATOR_LOADING_MESSAGES, GENERATOR_SUGGESTIONS } from '../data/constants';
 
 interface GeneratorProps {
   onImageGenerated: (img: GeneratedImage) => void;
   setMode: (mode: AppMode) => void;
 }
-
-const SUGGESTIONS = [
-  "A peaceful Japanese Zen garden with a small koi pond, bamboo fence, and maple trees.",
-  "A modern minimalist backyard with concrete pavers, succulents, and a fire pit.",
-  "A lush English cottage garden overflowing with colorful wildflowers and a cobblestone path.",
-  "A tropical paradise with palm trees, a hammock, and vibrant exotic flowers."
-];
-
-const LOADING_MESSAGES = [
-  "Dreaming up your garden...",
-  "Calculating light and shadows...",
-  "Planting virtual seeds...",
-  "Rendering in 4K resolution...",
-  "Polishing the leaves..."
-];
 
 export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode }) => {
   const [prompt, setPrompt] = useState('');
@@ -33,10 +19,10 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
     if (loading.operation !== 'generating') return;
     let messageIndex = 0;
     const interval = setInterval(() => {
-      messageIndex = (messageIndex + 1) % LOADING_MESSAGES.length;
+      messageIndex = (messageIndex + 1) % GENERATOR_LOADING_MESSAGES.length;
       setLoading(prev => {
         if (!prev.isLoading) return prev;
-        return { ...prev, message: LOADING_MESSAGES[messageIndex] };
+        return { ...prev, message: GENERATOR_LOADING_MESSAGES[messageIndex] };
       });
     }, 2000);
     return () => clearInterval(interval);
@@ -45,7 +31,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     
-    setLoading({ isLoading: true, operation: 'generating', message: LOADING_MESSAGES[0] });
+    setLoading({ isLoading: true, operation: 'generating', message: GENERATOR_LOADING_MESSAGES[0] });
     setResult(null);
 
     try {
@@ -110,7 +96,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-            {SUGGESTIONS.map((s, i) => (
+            {GENERATOR_SUGGESTIONS.map((s, i) => (
               <button
                 key={i}
                 onClick={() => setPrompt(s)}

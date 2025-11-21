@@ -1,5 +1,6 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { AspectRatio } from "../types";
+import { GENERATION_ANGLES, GENERATION_LIGHTING, GENERATION_STYLES } from "../data/constants";
 
 // Helper to clean base64 string (remove data URL prefix)
 const cleanBase64 = (dataUrl: string): string => {
@@ -81,8 +82,6 @@ export const generateGardenVideo = async (image: string, prompt: string): Promis
   const cleanData = cleanBase64(image);
   const mimeType = getMimeType(image);
 
-  // Veo requires 16:9 or 9:16. We'll default to 16:9 for landscape photos, 9:16 for portrait
-  // Since we don't calculate dims here, we force 16:9 for this feature as per instructions
   const aspectRatio = '16:9'; 
 
   let operation = await ai.models.generateVideos({
@@ -176,25 +175,25 @@ export const getSeasonalGardeningTip = async (season: string): Promise<string> =
   return response.text || `It's a great time to get out in the garden and enjoy the ${season} weather!`;
 };
 
-// --- EXISTING UTILS ---
+// --- PLANT UTILS ---
 
-export const generatePlantImage = async (plantName: string, description: string): Promise<string> => {
+export const generatePlantImage = async (
+  plantName: string, 
+  description: string,
+  style?: string,
+  lighting?: string
+): Promise<string> => {
   const ai = getAI();
   
-  // Randomize parameters to ensure unique, diverse generations
-  const angles = ["close-up macro shot showing texture", "eye-level botanical portrait", "low angle shot looking up", "artistic overhead detail shot"];
-  const lightings = ["soft morning mist lighting", "golden hour sunlight", "dramatic afternoon shadows", "bright diffused daylight"];
-  const styles = ["highly detailed photorealistic 8k", "nature documentary style photography", "vibrant cinematic garden shot"];
-  
-  const randomAngle = angles[Math.floor(Math.random() * angles.length)];
-  const randomLighting = lightings[Math.floor(Math.random() * lightings.length)];
-  const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+  const randomAngle = GENERATION_ANGLES[Math.floor(Math.random() * GENERATION_ANGLES.length)];
+  const selectedLighting = lighting || GENERATION_LIGHTING[Math.floor(Math.random() * GENERATION_LIGHTING.length)];
+  const selectedStyle = style || GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
 
-  const prompt = `Create a ${randomStyle} of ${plantName}. 
+  const prompt = `Create a ${selectedStyle} of ${plantName}. 
   Context: ${description}. 
   Composition: ${randomAngle}. 
-  Lighting: ${randomLighting}. 
-  Ensure the plant is the main subject, isolated or with a beautiful bokeh background. High definition, sharp focus.`;
+  Lighting: ${selectedLighting}. 
+  Ensure the plant is the main subject. High quality, artistic composition.`;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
@@ -222,5 +221,4 @@ export const generatePlantDescription = async (plantName: string, currentDescrip
   return response.text || currentDescription;
 };
 
-// Export AI instance creator for Live API
 export const getAIClient = () => getAI();

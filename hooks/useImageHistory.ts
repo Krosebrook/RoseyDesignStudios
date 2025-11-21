@@ -1,9 +1,9 @@
 
 import { useState, useCallback } from 'react';
 
-export const useImageHistory = (initialImage: string | null) => {
+export const useImageHistory = (initialImage: string | null, initialHistory?: string[]) => {
   const [currentImage, setCurrentImage] = useState<string | null>(initialImage);
-  const [history, setHistory] = useState<string[]>(initialImage ? [initialImage] : []);
+  const [history, setHistory] = useState<string[]>(initialHistory || (initialImage ? [initialImage] : []));
 
   const pushToHistory = useCallback((newImage: string) => {
     setCurrentImage(newImage);
@@ -18,9 +18,9 @@ export const useImageHistory = (initialImage: string | null) => {
     }
   }, [history]);
 
-  const resetHistory = useCallback((image: string) => {
+  const resetHistory = useCallback((image: string, newHistory?: string[]) => {
     setCurrentImage(image);
-    setHistory([image]);
+    setHistory(newHistory || [image]);
   }, []);
 
   return {
