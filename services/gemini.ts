@@ -181,21 +181,21 @@ export const generatePlantImage = async (
   let selectedStyle = style;
   if (!selectedStyle) {
       const s1 = GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
-      // 20% chance to mix styles for something unique
-      if (Math.random() > 0.8) {
+      // 40% chance to mix styles for something truly unique
+      if (Math.random() > 0.6) {
           const s2 = GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
-          selectedStyle = `${s1} mixed with ${s2}`;
+          selectedStyle = `${s1} blended with ${s2}`;
       } else {
           selectedStyle = s1;
       }
   }
   
   // High variance seed
-  const variationSeed = Math.floor(Math.random() * 9999999);
+  const variationSeed = Math.floor(Math.random() * 999999999);
   const timestamp = Date.now();
 
   const prompt = `
-    Create a distinct and unique high-resolution image of ${plantName}. 
+    Create a distinctly unique high-resolution image of ${plantName}. 
     Context: ${description}.
     
     ARTISTIC DIRECTION:
@@ -206,7 +206,8 @@ export const generatePlantImage = async (
     REQUIREMENTS:
     - Focus purely on the plant aesthetics.
     - High detail, 8k resolution.
-    - Make it look different from a standard stock photo.
+    - Make it look distinctively different from standard stock photos.
+    - Use the random seed to vary composition, zoom level, and background blur.
     - Ensure uniqueness compared to typical ${plantName} photos.
     - Random Noise Seed: ${variationSeed}-${timestamp}
   `;

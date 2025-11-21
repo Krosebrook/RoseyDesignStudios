@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download } from 'lucide-react';
+import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download, CheckCircle2, Armchair, Droplet } from 'lucide-react';
 
 interface PlantCardProps {
   plant: Plant;
@@ -106,7 +107,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
                    onAddToDesign(plant.name);
                  }}
                  className="bg-white text-primary-600 hover:text-primary-700 p-2 rounded-full shadow-lg hover:scale-110 transition-all cursor-pointer transform translate-y-2 group-hover:translate-y-0 duration-200"
-                 title="Add to Garden"
+                 title="Add to Design"
                >
                  <PlusCircle size={20} />
                </button>
@@ -132,13 +133,13 @@ export const PlantCard: React.FC<PlantCardProps> = ({
         <img 
           src={images[currentIndex] || images[0]} 
           alt={`${plant.name} variation ${currentIndex + 1}`}
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isGenerating ? 'opacity-90' : ''}`}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isGenerating ? 'opacity-90 blur-[1px]' : ''}`}
           loading="lazy"
         />
         
         {/* Image Counter / Variation Badge */}
         {images.length > 1 && (
-          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-medium z-20 flex items-center gap-1 border border-white/10">
+          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-medium z-20 flex items-center gap-1 border border-white/10 shadow-sm">
             <Sparkles size={10} className="text-amber-400" />
             Variation {currentIndex + 1} / {images.length}
           </div>
@@ -149,58 +150,71 @@ export const PlantCard: React.FC<PlantCardProps> = ({
           href={images[currentIndex]} 
           download={`${plant.name}-variation-${currentIndex + 1}.png`}
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-2 left-28 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white p-1 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity z-20"
+          className="absolute top-2 right-2 lg:right-auto lg:left-28 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white p-1.5 rounded-full lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity z-20"
           title="Download this variation"
         >
           <Download size={14} />
         </a>
         
-        {/* Carousel Controls */}
+        {/* Carousel Controls - Always visible on mobile, hover on desktop */}
         {images.length > 1 && !isGenerating && (
           <>
             <button 
               onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity backdrop-blur-sm z-30"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity backdrop-blur-sm z-30"
               title="Previous variation"
             >
               <ChevronLeft size={18} />
             </button>
             <button 
               onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity backdrop-blur-sm z-30"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity backdrop-blur-sm z-30"
               title="Next variation"
             >
               <ChevronRight size={18} />
             </button>
             
             {/* Dot Indicators */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-30 p-1 rounded-full bg-black/20 backdrop-blur-[1px]">
               {images.map((_, idx) => (
                 <button 
                   key={idx} 
                   onClick={(e) => selectDot(e, idx)}
                   className={`w-1.5 h-1.5 rounded-full shadow-sm transition-all duration-300 ${idx === currentIndex ? 'bg-white w-3 scale-110' : 'bg-white/50 hover:bg-white/80'}`} 
+                  aria-label={`Select variation ${idx + 1}`}
                 />
               ))}
             </div>
           </>
         )}
 
-        {/* Water Badge */}
-        <div className="absolute top-2 right-2 z-10 pointer-events-none">
-            <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-md bg-white/90 shadow-sm border border-white/50 ${
-                plant.water === 'High' ? 'text-blue-700' : 
-                plant.water === 'Moderate' ? 'text-blue-600' : 'text-amber-600'
-            }`}>
-                {plant.water === 'Drought-tolerant' ? 'Drought Tolerant' : plant.water}
-            </span>
-        </div>
+        {/* Water Badge - Only show for Plants */}
+        {plant.category === 'Plant' && plant.water && (
+            <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-md bg-white/90 shadow-sm ${
+                    plant.water === 'High' ? 'text-blue-700' : 
+                    plant.water === 'Moderate' ? 'text-blue-600' : 'text-amber-600'
+                }`}>
+                    {plant.water === 'Drought-tolerant' ? 'Drought Tolerant' : plant.water}
+                </span>
+            </div>
+        )}
+
+        {/* Category Badge for Non-Plants */}
+        {plant.category !== 'Plant' && (
+            <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                 <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-md bg-white/90 shadow-sm text-stone-700 flex items-center gap-1">
+                    {plant.category === 'Furniture' ? <Armchair size={10} /> : <Droplet size={10} />}
+                    {plant.category}
+                 </span>
+            </div>
+        )}
 
         {/* Generate AI Button */}
         <button
           onClick={(e) => onGenerateAI(e, plant)}
           disabled={isGenerating}
-          className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 z-30 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0 border border-primary-100"
+          className="absolute bottom-10 right-2 lg:bottom-2 bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 z-30 lg:opacity-0 lg:group-hover/image:opacity-100 border border-primary-100"
           title="Generate new unique variation"
         >
           {isGenerating ? (
@@ -226,8 +240,8 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             <div className="flex items-start justify-between gap-2">
                <h3 className="font-bold text-lg text-stone-800 group-hover:text-primary-700 transition-colors leading-tight">{plant.name}</h3>
                {images.length > 1 && (
-                 <span className="text-[10px] bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded border border-primary-100 whitespace-nowrap">
-                    {images.length} looks
+                 <span className="text-[10px] bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded border border-primary-100 whitespace-nowrap flex items-center gap-1">
+                    <CheckCircle2 size={10} /> Selected
                  </span>
                )}
             </div>
@@ -235,20 +249,27 @@ export const PlantCard: React.FC<PlantCardProps> = ({
         </div>
         <p className="text-sm text-stone-600 mb-4 flex-grow line-clamp-3 leading-relaxed">{plant.description}</p>
         
-        <div className="space-y-2 pt-4 border-t border-stone-100 text-xs">
-          <div className="flex items-center gap-2 text-stone-600">
-            <Sun size={14} className="text-amber-500 shrink-0" />
-            <span className="truncate">{plant.sunlight}</span>
-          </div>
-          <div className="flex items-center gap-2 text-stone-600">
-            <Droplets size={14} className="text-blue-500 shrink-0" />
-            <span className="truncate">{plant.water === 'Drought-tolerant' ? 'Low water needs' : `${plant.water} water`}</span>
-          </div>
-          <div className="flex items-center gap-2 text-stone-600">
-            <Calendar size={14} className="text-primary-500 shrink-0" />
-            <span className="truncate">{plant.seasons.join(', ')}</span>
-          </div>
-        </div>
+        {plant.category === 'Plant' && plant.sunlight && plant.water && plant.seasons ? (
+            <div className="space-y-2 pt-4 border-t border-stone-100 text-xs">
+              <div className="flex items-center gap-2 text-stone-600">
+                <Sun size={14} className="text-amber-500 shrink-0" />
+                <span className="truncate">{plant.sunlight}</span>
+              </div>
+              <div className="flex items-center gap-2 text-stone-600">
+                <Droplets size={14} className="text-blue-500 shrink-0" />
+                <span className="truncate">{plant.water === 'Drought-tolerant' ? 'Low water needs' : `${plant.water} water`}</span>
+              </div>
+              <div className="flex items-center gap-2 text-stone-600">
+                <Calendar size={14} className="text-primary-500 shrink-0" />
+                <span className="truncate">{plant.seasons.join(', ')}</span>
+              </div>
+            </div>
+        ) : (
+            <div className="pt-4 border-t border-stone-100 text-xs text-stone-500">
+                {plant.category === 'Furniture' && 'Perfect for patios and seating areas.'}
+                {plant.category === 'Water Feature' && 'Adds movement and tranquility.'}
+            </div>
+        )}
 
         {onAddToDesign && (
           <button
@@ -256,7 +277,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             className="w-full mt-4 py-2.5 px-4 bg-stone-50 hover:bg-primary-50 hover:text-primary-700 text-stone-600 hover:border-primary-200 border border-stone-200 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow"
           >
             <PlusCircle size={16} className="text-primary-500 group-hover/btn:scale-110 transition-transform" />
-            Add to Garden
+            Add to Design
           </button>
         )}
       </div>

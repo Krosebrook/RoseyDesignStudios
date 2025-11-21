@@ -45,7 +45,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
       <div className="flex mb-4 bg-stone-100 p-1 rounded-xl">
         {[
           { id: 'tools', label: 'Tools', icon: null },
-          { id: 'plants', label: 'Plant Palette', icon: Sprout }
+          { id: 'plants', label: 'Item Palette', icon: Sprout }
         ].map(tab => (
           <button
             key={tab.id}
@@ -158,21 +158,21 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
             </div>
           </div>
         ) : (
-          // Plant Palette Section
+          // Item Palette Section
           <div className="bg-white rounded-2xl shadow-sm border border-stone-200 flex flex-col h-full overflow-hidden">
             <div className="p-4 border-b border-stone-100">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
                 <input
                   type="text"
-                  placeholder="Search plants..."
+                  placeholder="Search items..."
                   value={plantSearch}
                   onChange={(e) => setPlantSearch(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none"
                 />
               </div>
               <p className="text-xs text-stone-500 mt-2">
-                Drag plants onto the canvas to add them.
+                Drag items onto the canvas to add them.
               </p>
             </div>
 

@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus } from 'lucide-react';
+import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet } from 'lucide-react';
 
 interface PlantDetailPopoverProps {
   plant: Plant;
@@ -50,7 +51,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
     if (top < padding) top = padding;
 
     setPosition({ top, left });
-  }, [rect, enhancedDescription]); // Re-calculate when description changes size
+  }, [rect, enhancedDescription]); 
 
   return (
     <div 
@@ -64,7 +65,9 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
           <p className="text-sm text-stone-500 italic font-serif">{plant.scientificName}</p>
         </div>
         <div className="bg-primary-50 p-2 rounded-full text-primary-600">
-          <Sprout size={18} />
+           {plant.category === 'Furniture' ? <Armchair size={18} /> : 
+            plant.category === 'Water Feature' ? <Droplet size={18} /> : 
+            <Sprout size={18} />}
         </div>
       </div>
       
@@ -99,37 +102,50 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
         </div>
       </div>
       
-      <div className="space-y-3">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">
-            <Sun size={12} /> Sunlight
+      {plant.category === 'Plant' && plant.sunlight && plant.water && plant.seasons ? (
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">
+                <Sun size={12} /> Sunlight
+              </div>
+              <div className="text-sm text-stone-800">{plant.sunlight}</div>
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">
+                <Droplets size={12} /> Water
+              </div>
+              <div className="text-sm text-stone-800">
+                 {plant.water === 'Drought-tolerant' ? 'Drought Tolerant (Low)' : 
+                  plant.water === 'Moderate' ? 'Moderate Water' : 'High Water Needs'}
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">
+                <Calendar size={12} /> Bloom Season
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {plant.seasons.map(s => (
+                  <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md">
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-stone-800">{plant.sunlight}</div>
-        </div>
-        
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">
-            <Droplets size={12} /> Water
+      ) : (
+          <div className="space-y-3">
+             <div>
+                 <div className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">Category</div>
+                 <div className="text-sm text-stone-800">{plant.category}</div>
+             </div>
+             <div>
+                 <div className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">Material/Type</div>
+                 <div className="text-sm text-stone-800">{plant.scientificName}</div>
+             </div>
           </div>
-          <div className="text-sm text-stone-800">
-             {plant.water === 'Drought-tolerant' ? 'Drought Tolerant (Low)' : 
-              plant.water === 'Moderate' ? 'Moderate Water' : 'High Water Needs'}
-          </div>
-        </div>
-        
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">
-            <Calendar size={12} /> Bloom Season
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {plant.seasons.map(s => (
-              <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md">
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

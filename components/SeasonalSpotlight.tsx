@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Season, Plant } from '../types';
 import { PLANTS } from '../data/plants';
@@ -57,7 +58,8 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
     fetchTip(s);
   };
 
-  const seasonalPlants = PLANTS.filter(p => p.seasons.includes(currentSeason));
+  // Ensure we only filter items that HAVE seasons (Category = Plant)
+  const seasonalPlants = PLANTS.filter(p => p.seasons && p.seasons.includes(currentSeason));
 
   const seasonConfig = {
     Spring: { icon: CloudRain, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },

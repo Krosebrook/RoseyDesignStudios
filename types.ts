@@ -1,3 +1,4 @@
+
 export interface GeneratedImage {
   id: string;
   dataUrl: string; // Base64 data URL
@@ -30,15 +31,18 @@ export type SunlightRequirement = 'Full Sun' | 'Partial Shade' | 'Full Shade';
 export type WaterRequirement = 'Drought-tolerant' | 'Moderate' | 'High';
 export type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
+export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture';
+
 export interface Plant {
   id: string;
   name: string;
-  scientificName: string;
+  scientificName: string; // Used as "Material" or "Type" for non-plants
   description: string;
-  sunlight: SunlightRequirement;
-  water: WaterRequirement;
-  seasons: Season[];
+  sunlight?: SunlightRequirement;
+  water?: WaterRequirement;
+  seasons?: Season[];
   imageUrl: string;
+  category: ItemCategory;
 }
 
 export interface SavedDesign {
