@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sun, Droplets, Calendar, Sparkles, PlusCircle, Move, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, CheckCircle2 } from 'lucide-react';
 
 interface PlantCardProps {
   plant: Plant;
-  images: string[]; // Changed from single displayImageUrl to array
+  images: string[]; // Array of image URLs (original + generated)
   isGenerating: boolean;
   onGenerateAI: (e: React.MouseEvent, plant: Plant) => void;
   onAddToDesign?: (plantName: string) => void;
@@ -25,7 +25,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Automatically switch to the newest image when array length increases
+  // Automatically switch to the newest image when array length increases (new generation added)
   useEffect(() => {
     if (images.length > 0) {
       setCurrentIndex(images.length - 1);
@@ -42,6 +42,11 @@ export const PlantCard: React.FC<PlantCardProps> = ({
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const selectDot = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setCurrentIndex(index);
+  };
+
   if (mini) {
     return (
       <div 
@@ -56,48 +61,63 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             alt={plant.name}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-            <Move className="text-white opacity-0 group-hover:opacity-100 drop-shadow-lg transform scale-75" />
-          </div>
         </div>
-        <div className="p-2">
-          <p className="font-medium text-stone-800 text-sm truncate">{plant.name}</p>
-          <p className="text-[10px] text-stone-500 truncate">{plant.scientificName}</p>
+        <div className="p-2 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-medium text-stone-800 text-sm truncate">{plant.name}</p>
+            <p className="text-[10px] text-stone-500 truncate">{plant.scientificName}</p>
+          </div>
+          <div className="text-stone-300 group-hover:text-stone-500 transition-colors flex-shrink-0">
+            <GripVertical size={16} />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-stone-100 group flex flex-col h-full">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-stone-100 group flex flex-col h-full relative">
       <div className="relative h-48 overflow-hidden bg-stone-200 group/image">
         <img 
           src={images[currentIndex] || images[0]} 
-          alt={`${plant.name} view ${currentIndex + 1}`}
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isGenerating ? 'opacity-50 blur-sm' : ''}`}
+          alt={`${plant.name} variation ${currentIndex + 1}`}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isGenerating ? 'opacity-90' : ''}`}
           loading="lazy"
         />
+        
+        {/* Image Counter / Variation Badge */}
+        {images.length > 1 && (
+          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-medium z-20 flex items-center gap-1 border border-white/10">
+            <Sparkles size={10} className="text-amber-400" />
+            Variation {currentIndex + 1} / {images.length}
+          </div>
+        )}
         
         {/* Carousel Controls */}
         {images.length > 1 && !isGenerating && (
           <>
             <button 
               onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity backdrop-blur-sm"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity backdrop-blur-sm z-30"
+              title="Previous variation"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
             <button 
               onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity backdrop-blur-sm"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/image:opacity-100 transition-opacity backdrop-blur-sm z-30"
+              title="Next variation"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity">
+            
+            {/* Dot Indicators */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
               {images.map((_, idx) => (
-                <div 
+                <button 
                   key={idx} 
-                  className={`w-1.5 h-1.5 rounded-full shadow-sm ${idx === currentIndex ? 'bg-white' : 'bg-white/50'}`} 
+                  onClick={(e) => selectDot(e, idx)}
+                  className={`w-1.5 h-1.5 rounded-full shadow-sm transition-all duration-300 ${idx === currentIndex ? 'bg-white w-3 scale-110' : 'bg-white/50 hover:bg-white/80'}`} 
                 />
               ))}
             </div>
@@ -106,7 +126,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
 
         {/* Water Badge */}
         <div className="absolute top-2 right-2 z-10 pointer-events-none">
-            <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-sm bg-white/90 shadow-sm ${
+            <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-md bg-white/90 shadow-sm border border-white/50 ${
                 plant.water === 'High' ? 'text-blue-700' : 
                 plant.water === 'Moderate' ? 'text-blue-600' : 'text-amber-600'
             }`}>
@@ -114,12 +134,12 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             </span>
         </div>
 
-        {/* AI Generator Button - Always visible on touch, hover effect on desktop */}
+        {/* Generate AI Button */}
         <button
           onClick={(e) => onGenerateAI(e, plant)}
           disabled={isGenerating}
-          className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-md transition-all hover:scale-105 z-10 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0"
-          title="Generate new unique variation"
+          className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 z-30 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0 border border-primary-100"
+          title="Generate new AI variation"
         >
           {isGenerating ? (
               <div className="animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full" />
@@ -130,15 +150,25 @@ export const PlantCard: React.FC<PlantCardProps> = ({
 
         {/* Loading Overlay */}
         {isGenerating && (
-            <div className="absolute inset-0 flex items-center justify-center z-0">
-                <p className="text-xs font-bold text-stone-800 bg-white/80 px-2 py-1 rounded-md">Generating variation...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/20 backdrop-blur-[2px]">
+                <div className="bg-white/90 px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-2">
+                   <div className="animate-spin h-3 w-3 border-2 border-primary-600 border-t-transparent rounded-full" />
+                   <span className="text-xs font-bold text-primary-900">Creating variation...</span>
+                </div>
             </div>
         )}
       </div>
       
       <div className="p-5 flex flex-col flex-grow">
         <div className="mb-2">
-            <h3 className="font-bold text-lg text-stone-800 group-hover:text-primary-700 transition-colors">{plant.name}</h3>
+            <div className="flex items-start justify-between gap-2">
+               <h3 className="font-bold text-lg text-stone-800 group-hover:text-primary-700 transition-colors leading-tight">{plant.name}</h3>
+               {images.length > 1 && (
+                 <span className="text-[10px] bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded border border-primary-100 whitespace-nowrap">
+                    {images.length} looks
+                 </span>
+               )}
+            </div>
             <p className="text-xs text-stone-500 italic">{plant.scientificName}</p>
         </div>
         <p className="text-sm text-stone-600 mb-4 flex-grow line-clamp-3 leading-relaxed">{plant.description}</p>
@@ -161,7 +191,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
         {onAddToDesign && (
           <button
             onClick={() => onAddToDesign(plant.name)}
-            className="w-full mt-4 py-2 px-4 bg-stone-50 hover:bg-primary-50 hover:text-primary-700 text-stone-600 hover:border-primary-200 border border-stone-200 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 group/btn"
+            className="w-full mt-4 py-2.5 px-4 bg-stone-50 hover:bg-primary-50 hover:text-primary-700 text-stone-600 hover:border-primary-200 border border-stone-200 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow"
           >
             <PlusCircle size={16} className="text-primary-500 group-hover/btn:scale-110 transition-transform" />
             Add to Garden

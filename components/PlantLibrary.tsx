@@ -30,7 +30,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
   // Hover state for Popover
   const [hoveredPlantData, setHoveredPlantData] = useState<{ plant: Plant; rect: DOMRect } | null>(null);
 
-  const handleGenerateAIImage = async (e?: React.MouseEvent, plant?: Plant) => {
+  const handleGenerateAIImage = async (e?: React.MouseEvent, plant?: Plant, style?: string, lighting?: string) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -44,7 +44,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
     setGeneratingIds(prev => new Set(prev).add(targetPlant.id));
     
     try {
-        const newImage = await generatePlantImage(targetPlant.name, targetPlant.description);
+        const newImage = await generatePlantImage(targetPlant.name, targetPlant.description, style, lighting);
         setGeneratedImages(prev => {
           const existing = prev[targetPlant.id] || [];
           return { ...prev, [targetPlant.id]: [...existing, newImage] };
@@ -121,7 +121,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
             >
               <PlantCard 
                 plant={plant}
-                // Pass the default image plus any generated ones
+                // Pass the default image plus any generated ones to enable carousel
                 images={[plant.imageUrl, ...(generatedImages[plant.id] || [])]}
                 isGenerating={generatingIds.has(plant.id)}
                 onGenerateAI={handleGenerateAIImage}

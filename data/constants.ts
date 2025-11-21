@@ -29,11 +29,11 @@ export const GENERATION_STYLES = [
 ];
 
 export const EDIT_LOADING_MESSAGES = [
-  "Analyzing texture masks...",
-  "Regenerating foliage...",
-  "Calculating light paths...",
-  "Blending semantic regions...",
-  "Finalizing composite layer..."
+  "Parsing semantic segmentation maps...",
+  "Estimating light diffusion...",
+  "Applying procedural textures...",
+  "Synthesizing depth-aware foliage...",
+  "Compiling final render layer..."
 ];
 
 export const GENERATOR_LOADING_MESSAGES = [

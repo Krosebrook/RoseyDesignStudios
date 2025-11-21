@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { generateGardenVideo } from '../services/gemini';
 import { LoadingState } from '../types';
-import { Upload, ImagePlus, Video, Download, Film } from 'lucide-react';
+import { Upload, Video, Download, Film, Smartphone, Monitor } from 'lucide-react';
 
 export const VideoAnimator: React.FC = () => {
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [prompt, setPrompt] = useState('');
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +36,7 @@ export const VideoAnimator: React.FC = () => {
         setLoading(prev => ({ ...prev, message: msgs[i++ % msgs.length] }));
       }, 4000);
 
-      const url = await generateGardenVideo(currentImage, prompt);
+      const url = await generateGardenVideo(currentImage, prompt, aspectRatio);
       
       clearInterval(interval);
       setVideoUrl(url);
@@ -104,6 +105,25 @@ export const VideoAnimator: React.FC = () => {
                     className="w-full p-3 border border-stone-200 rounded-xl text-sm h-24 resize-none focus:ring-2 focus:ring-indigo-200 outline-none"
                     disabled={loading.isLoading}
                 />
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Video Format</label>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setAspectRatio('16:9')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border text-sm font-medium transition-colors ${aspectRatio === '16:9' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'}`}
+                    >
+                      <Monitor size={16} /> Landscape (16:9)
+                    </button>
+                    <button
+                      onClick={() => setAspectRatio('9:16')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border text-sm font-medium transition-colors ${aspectRatio === '9:16' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'}`}
+                    >
+                      <Smartphone size={16} /> Portrait (9:16)
+                    </button>
+                  </div>
+                </div>
+
                 <button
                     onClick={handleGenerateVideo}
                     disabled={!currentImage || loading.isLoading}
@@ -149,6 +169,7 @@ export const VideoAnimator: React.FC = () => {
                 <div className="text-center text-stone-600">
                     <Film size={64} className="mx-auto mb-4 opacity-20" />
                     <p className="text-stone-500">Video preview will appear here</p>
+                    <p className="text-xs text-stone-700 mt-1">Select {aspectRatio} aspect ratio</p>
                 </div>
             )}
             

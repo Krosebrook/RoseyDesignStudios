@@ -9,6 +9,7 @@ import { EditorCanvas } from './EditorCanvas';
 import { Save, Check } from 'lucide-react';
 import { CameraModal } from './CameraModal';
 import { EDIT_LOADING_MESSAGES } from '../data/constants';
+import { compressImage } from '../utils/image';
 
 interface EditorProps {
   initialImage: GeneratedImage | null;
@@ -46,7 +47,7 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
 
   const [editPrompt, setEditPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showCamera, setShowCamera] = useState(false);
   
   // UI State
@@ -141,29 +142,42 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     } catch (err) {
       setLoading({ 
         isLoading: false, 
-        operation: 'idle',
+        operation: 'idle', 
         message: '', 
         error: 'Failed to edit image. Try a different prompt.' 
       });
     }
   };
 
-  const handleSaveProject = () => {
+  const handleSaveProject = async () => {
     if (!currentImage) return;
+    setSaveStatus('saving');
     
     try {
+      // Compress the current image to ensure it fits in LocalStorage
+      // We compress specifically for saving state; the user still sees the high res one until they reload
+      const compressedImage = await compressImage(currentImage, 0.7, 1024);
+      
+      // Compress history images (limit to last 5 to be safe with storage limits)
+      const historyToSave = history.slice(-5);
+      const compressedHistory = await Promise.all(
+        historyToSave.map(img => compressImage(img, 0.7, 1024))
+      );
+      
       const savedData = {
-        currentImage,
-        history,
+        currentImage: compressedImage,
+        history: compressedHistory,
         timestamp: Date.now()
       };
+      
       localStorage.setItem('dreamGarden_saved', JSON.stringify(savedData));
       
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (e) {
       console.error("Failed to save project", e);
-      alert("Could not save project. Local storage might be full.");
+      alert("Could not save project. Browser storage is full.");
+      setSaveStatus('idle');
     }
   };
 
@@ -241,15 +255,17 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
         <div className="absolute right-0 top-0 hidden md:block">
            <button 
              onClick={handleSaveProject}
-             disabled={!currentImage}
+             disabled={!currentImage || saveStatus === 'saving'}
              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm border ${
                 saveStatus === 'saved' 
                   ? 'bg-green-50 border-green-200 text-green-700' 
+                  : saveStatus === 'saving'
+                  ? 'bg-stone-50 border-stone-200 text-stone-400 cursor-wait'
                   : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
              }`}
            >
-             {saveStatus === 'saved' ? <Check size={18} /> : <Save size={18} />}
-             {saveStatus === 'saved' ? 'Saved!' : 'Save Project'}
+             {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
+             {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save Project'}
            </button>
         </div>
       </div>
@@ -292,14 +308,16 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
       <div className="md:hidden mt-6 flex justify-center">
          <button 
              onClick={handleSaveProject}
-             disabled={!currentImage}
+             disabled={!currentImage || saveStatus === 'saving'}
              className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm border ${
                 saveStatus === 'saved' 
                   ? 'bg-green-50 border-green-200 text-green-700' 
+                  : saveStatus === 'saving'
+                  ? 'bg-stone-50 border-stone-200 text-stone-400 cursor-wait'
                   : 'bg-white border-stone-200 text-stone-600'
              }`}
            >
-             {saveStatus === 'saved' ? <Check size={18} /> : <Save size={18} />}
+             {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
              {saveStatus === 'saved' ? 'Design Saved!' : 'Save Project to Device'}
            </button>
       </div>

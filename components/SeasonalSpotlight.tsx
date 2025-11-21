@@ -23,7 +23,7 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
   const [loadingTip, setLoadingTip] = useState(false);
 
   useEffect(() => {
-    // Determine current season
+    // Determine current season based on month (Northern Hemisphere)
     const month = new Date().getMonth(); // 0-11
     let s: Season = 'Spring';
     // Winter: Dec (11), Jan (0), Feb (1)
@@ -80,7 +80,7 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
             </div>
             <h2 className="text-3xl font-bold text-stone-800">Perfect for {currentSeason}</h2>
             <div className="mt-3 flex items-start gap-2 max-w-xl">
-               <Sparkles size={18} className={`mt-1 ${seasonConfig[currentSeason].color}`} />
+               <Sparkles size={18} className={`mt-1 flex-shrink-0 ${seasonConfig[currentSeason].color}`} />
                <p className={`text-stone-700 font-medium leading-relaxed ${loadingTip ? 'animate-pulse' : ''}`}>
                  {tip || "Loading seasonal tips..."}
                </p>
@@ -110,7 +110,7 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
           </div>
         </div>
 
-        {/* Horizontal Plant List */}
+        {/* Horizontal Plant List (Carousel) */}
         <div className="relative">
            {seasonalPlants.length > 0 ? (
              <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 custom-scrollbar">
@@ -125,12 +125,14 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
                     />
                   </div>
                 ))}
-                <div className="min-w-[100px] flex flex-col items-center justify-center text-center text-stone-500 p-4">
-                    <span className="text-sm font-medium mb-2">View All</span>
-                    <button className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:scale-110 transition-transform text-stone-800">
-                        <ArrowRight size={20} />
-                    </button>
-                </div>
+                {seasonalPlants.length > 4 && (
+                    <div className="min-w-[100px] flex flex-col items-center justify-center text-center text-stone-500 p-4">
+                        <span className="text-sm font-medium mb-2">View More</span>
+                        <button className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:scale-110 transition-transform text-stone-800">
+                            <ArrowRight size={20} />
+                        </button>
+                    </div>
+                )}
              </div>
            ) : (
              <div className="bg-white/50 rounded-xl p-8 text-center text-stone-500">

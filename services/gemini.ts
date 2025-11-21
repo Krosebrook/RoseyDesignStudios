@@ -1,17 +1,7 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { AspectRatio } from "../types";
 import { GENERATION_ANGLES, GENERATION_LIGHTING, GENERATION_STYLES } from "../data/constants";
-
-// Helper to clean base64 string (remove data URL prefix)
-const cleanBase64 = (dataUrl: string): string => {
-  return dataUrl.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
-};
-
-// Get MIME type from data URL
-const getMimeType = (dataUrl: string): string => {
-  const match = dataUrl.match(/^data:(image\/[a-zA-Z]+);base64,/);
-  return match ? match[1] : 'image/png';
-};
+import { cleanBase64, getMimeType } from "../utils/image";
 
 const getAI = () => {
   const apiKey = process.env.API_KEY;
@@ -77,12 +67,10 @@ export const editGardenImage = async (base64Image: string, prompt: string): Prom
 };
 
 // --- VEO VIDEO GENERATION ---
-export const generateGardenVideo = async (image: string, prompt: string): Promise<string> => {
+export const generateGardenVideo = async (image: string, prompt: string, aspectRatio: '16:9' | '9:16' = '16:9'): Promise<string> => {
   const ai = getAI();
   const cleanData = cleanBase64(image);
   const mimeType = getMimeType(image);
-
-  const aspectRatio = '16:9'; 
 
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
@@ -185,15 +173,42 @@ export const generatePlantImage = async (
 ): Promise<string> => {
   const ai = getAI();
   
+  // Ensure random selection if not provided
   const randomAngle = GENERATION_ANGLES[Math.floor(Math.random() * GENERATION_ANGLES.length)];
   const selectedLighting = lighting || GENERATION_LIGHTING[Math.floor(Math.random() * GENERATION_LIGHTING.length)];
-  const selectedStyle = style || GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
+  
+  // If no specific style, pick one, or maybe mix two for uniqueness
+  let selectedStyle = style;
+  if (!selectedStyle) {
+      const s1 = GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
+      // 20% chance to mix styles for something unique
+      if (Math.random() > 0.8) {
+          const s2 = GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
+          selectedStyle = `${s1} mixed with ${s2}`;
+      } else {
+          selectedStyle = s1;
+      }
+  }
+  
+  // High variance seed
+  const variationSeed = Math.floor(Math.random() * 9999999);
+  const timestamp = Date.now();
 
-  const prompt = `Create a ${selectedStyle} of ${plantName}. 
-  Context: ${description}. 
-  Composition: ${randomAngle}. 
-  Lighting: ${selectedLighting}. 
-  Ensure the plant is the main subject. High quality, artistic composition.`;
+  const prompt = `
+    Create a distinct and unique high-resolution image of ${plantName}. 
+    Context: ${description}.
+    
+    ARTISTIC DIRECTION:
+    - Style: ${selectedStyle}
+    - Perspective: ${randomAngle}
+    - Lighting: ${selectedLighting}
+    
+    REQUIREMENTS:
+    - Focus purely on the plant aesthetics.
+    - High detail, 8k resolution.
+    - Make it look different from a standard stock photo.
+    - Random Noise Seed: ${variationSeed}-${timestamp}
+  `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
