@@ -207,6 +207,7 @@ export const generatePlantImage = async (
     - Focus purely on the plant aesthetics.
     - High detail, 8k resolution.
     - Make it look different from a standard stock photo.
+    - Ensure uniqueness compared to typical ${plantName} photos.
     - Random Noise Seed: ${variationSeed}-${timestamp}
   `;
 

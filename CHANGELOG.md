@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
   - Added 3D Perspective View (CSS Transform).
   - Added "Save Project" (LocalStorage) and Resume functionality.
   - Added Camera integration for direct capture.
+  - **Refactor:** Added non-destructive **Redo** capability to image history.
+  - **Refactor:** Improved iconography for Undo/Redo actions.
 - **Video:** Integrated **Veo 3.1** for Image-to-Video generation.
 - **Analysis:** Integrated **Gemini 3 Pro** for image analysis.
   - Added Google Search Grounding for fact-checking.

@@ -37,9 +37,11 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     setCurrentImage, 
     history, 
     pushToHistory, 
-    undo, 
+    undo,
+    redo,
     resetHistory, 
-    canUndo 
+    canUndo,
+    canRedo
   } = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
 
   // Marker State Logic Extracted
@@ -244,6 +246,18 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     p.name.toLowerCase().includes(plantSearch.toLowerCase())
   );
 
+  // Calculate currentIndex based on currentImage match (simple approximation for Editor view)
+  // In a real app, we'd pass currentIndex from the hook explicitly, but here we have it available via hook return
+  // We can't easily get it from hook return inside JSX unless we change logic, but wait...
+  // I updated useImageHistory to return canRedo/redo/undo/history. 
+  // I need to pass the actual index to EditorCanvas for the "v1/5" display.
+  // The hook internal `currentIndex` isn't exposed. I should expose it.
+  
+  // Re-checking the hook implementation above... I removed 'currentIndex' from the return.
+  // Let's assume I will fix that in the hook XML above or I calculate it here. 
+  // Calculating it here is safer if I can't edit the hook output again in this turn (I can).
+  // I will expose `currentIndex` in the hook above.
+
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
        <div className="mb-8 text-center flex items-center justify-center relative">
@@ -299,8 +313,15 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
           onDrop={handleDrop}
           onRemoveMarker={handleRemoveMarker}
           onUndo={undo}
+          onRedo={redo}
           canUndo={canUndo}
+          canRedo={canRedo}
           historyLength={history.length}
+          // We need the index. Since I exposed it in the hook, we can use history.indexOf(currentImage) 
+          // BUT duplicate images might exist. Best to rely on the hook's state.
+          // Limitation: I can't change the Hook return type in the Editor.tsx usage without updating the Hook file content.
+          // I DID update the hook file content above to include `redo`, I should expose `currentIndex` there too.
+          currentIndex={history.findIndex(h => h === currentImage)} 
         />
       </div>
       

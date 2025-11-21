@@ -47,6 +47,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
         const newImage = await generatePlantImage(targetPlant.name, targetPlant.description, style, lighting);
         setGeneratedImages(prev => {
           const existing = prev[targetPlant.id] || [];
+          // Append new image to the existing array for this plant
           return { ...prev, [targetPlant.id]: [...existing, newImage] };
         });
     } catch (err) {

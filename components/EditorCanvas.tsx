@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ImagePlus, Plus, X, RefreshCw, Download, Sprout, Box, Layers } from 'lucide-react';
+import { ImagePlus, Plus, X, Download, Sprout, Box, Layers, Undo2, Redo2, CornerDownLeft } from 'lucide-react';
 import { LoadingState } from '../types';
 
 interface PlantMarker {
@@ -20,8 +20,11 @@ interface EditorCanvasProps {
   onDrop: (e: React.DragEvent) => void;
   onRemoveMarker: (id: string) => void;
   onUndo: () => void;
+  onRedo: () => void;
   canUndo: boolean;
+  canRedo: boolean;
   historyLength: number;
+  currentIndex: number; // For version display
 }
 
 export const EditorCanvas: React.FC<EditorCanvasProps> = ({
@@ -34,8 +37,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onDrop,
   onRemoveMarker,
   onUndo,
+  onRedo,
   canUndo,
-  historyLength
+  canRedo,
+  historyLength,
+  currentIndex
 }) => {
   const [is3DMode, setIs3DMode] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -44,8 +50,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     if (!is3DMode || !currentImage) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    // Calculate normalized coordinates (-1 to 1) for better rotation math
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
     
     setMousePos({ x, y });
   };
@@ -59,13 +66,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             <div className="bg-stone-50 border-b border-stone-200 p-2 flex justify-end gap-2">
                 <button
                   onClick={() => setIs3DMode(false)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!is3DMode ? 'bg-white shadow text-primary-700' : 'text-stone-500 hover:bg-stone-200'}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!is3DMode ? 'bg-white shadow text-primary-700 border border-stone-100' : 'text-stone-500 hover:bg-stone-200'}`}
                 >
                     <Layers size={14} /> 2D View
                 </button>
                 <button
                   onClick={() => setIs3DMode(true)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${is3DMode ? 'bg-white shadow text-indigo-600' : 'text-stone-500 hover:bg-stone-200'}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${is3DMode ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm' : 'text-stone-500 hover:bg-stone-200'}`}
                 >
                     <Box size={14} /> 3D Perspective
                 </button>
@@ -73,7 +80,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         )}
 
         <div 
-            className="flex-1 bg-stone-100 relative flex items-center justify-center overflow-hidden perspective-1000"
+            className="flex-1 bg-stone-100 relative flex items-center justify-center overflow-hidden"
             onMouseMove={handleMouseMove}
             style={{ perspective: '1000px' }}
         >
@@ -86,17 +93,18 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           ) : (
             <div 
               className={`relative w-full h-full flex items-center justify-center transition-all duration-200 
-                ${isDraggingOver ? 'bg-primary-50/50' : 'bg-stone-900/5'}
+                ${isDraggingOver ? 'bg-primary-50/30 ring-4 ring-inset ring-primary-300' : 'bg-stone-900/5'}
               `}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
             >
               <div 
-                className="relative transition-transform duration-100 ease-out max-w-full max-h-[75vh]"
+                className="relative transition-transform duration-200 ease-out max-w-full max-h-[75vh]"
                 style={is3DMode ? {
-                    transform: `rotateY(${mousePos.x * 10}deg) rotateX(${-mousePos.y * 10}deg) scale(0.9)`,
-                    transformStyle: 'preserve-3d'
+                    transform: `rotateY(${mousePos.x * 15}deg) rotateX(${-mousePos.y * 15}deg) scale(0.9)`,
+                    transformStyle: 'preserve-3d',
+                    boxShadow: `${-mousePos.x * 30}px ${-mousePos.y * 30}px 50px rgba(0,0,0,0.25)`
                 } : {}}
               >
                   <img 
@@ -104,9 +112,20 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                     alt="Garden to edit" 
                     className={`max-w-full max-h-[75vh] object-contain shadow-2xl transition-transform duration-200 
                         ${isDraggingOver ? 'scale-95 brightness-90' : ''}
-                        ${is3DMode ? 'shadow-2xl rounded-lg' : ''}
+                        ${is3DMode ? 'rounded-lg' : ''}
                     `}
                   />
+
+                  {/* Sheen Effect for 3D Mode */}
+                  {is3DMode && (
+                    <div 
+                        className="absolute inset-0 pointer-events-none z-30 rounded-lg mix-blend-overlay"
+                        style={{
+                            background: `linear-gradient(${135 + mousePos.x * 45}deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)`,
+                            opacity: 0.8
+                        }}
+                    />
+                  )}
 
                   {/* Simulated Depth Layer for Markers in 3D Mode */}
                   {markers.map(marker => (
@@ -117,7 +136,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                         left: `${marker.x}%`, 
                         top: `${marker.y}%`,
                         transform: is3DMode 
-                            ? `translate(-50%, -50%) translateZ(30px)` 
+                            ? `translate(-50%, -50%) translateZ(40px)` 
                             : `translate(-50%, -50%)` 
                       }}
                     >
@@ -137,9 +156,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               
               {/* Drop Target Overlay */}
               {isDraggingOver && (
-                <div className="absolute inset-0 border-4 border-dashed border-primary-500/50 m-4 rounded-xl flex items-center justify-center bg-primary-50/20 backdrop-blur-[1px] pointer-events-none z-20">
-                  <div className="bg-white/90 px-6 py-3 rounded-full shadow-lg text-primary-700 font-bold flex items-center gap-2 animate-bounce">
-                    <Plus size={20} /> Drop to add plant
+                <div className="absolute inset-0 m-4 rounded-xl flex items-center justify-center pointer-events-none z-30">
+                  <div className="bg-white/95 px-8 py-4 rounded-2xl shadow-xl text-primary-700 font-bold flex flex-col items-center gap-2 animate-bounce border-2 border-primary-100">
+                    <CornerDownLeft size={32} className="text-primary-500" /> 
+                    <span>Release to Add Plant</span>
                   </div>
                 </div>
               )}
@@ -155,8 +175,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               )}
               
               {is3DMode && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-sm pointer-events-none">
-                      Move mouse to rotate perspective
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-1.5 rounded-full text-xs backdrop-blur-md pointer-events-none flex items-center gap-2 shadow-lg border border-white/10">
+                      <Box size={12} /> Move mouse to rotate perspective
                   </div>
               )}
             </div>
@@ -166,21 +186,32 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         {/* Toolbar Footer */}
         {currentImage && (
           <div className="p-4 border-t border-stone-200 bg-white flex justify-between items-center">
-             <div className="flex gap-2">
-                <button 
-                  onClick={onUndo}
-                  disabled={!canUndo || loading.isLoading}
-                  className="group relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-600 hover:bg-stone-100 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
-                >
-                  <RefreshCw size={14} className="-scale-x-100" /> Undo
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-stone-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-sm z-10">
-                    Revert to previous version
-                  </span>
-                </button>
-                <span className="text-xs text-stone-400 self-center">
-                  v{historyLength}
+             <div className="flex gap-2 items-center">
+                {/* Undo / Redo Group */}
+                <div className="flex bg-stone-100 rounded-lg p-1 mr-2">
+                  <button 
+                    onClick={onUndo}
+                    disabled={!canUndo || loading.isLoading}
+                    className="p-2 text-stone-600 hover:bg-white hover:text-stone-900 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                    title="Undo (Ctrl+Z)"
+                  >
+                    <Undo2 size={18} />
+                  </button>
+                  <button 
+                    onClick={onRedo}
+                    disabled={!canRedo || loading.isLoading}
+                    className="p-2 text-stone-600 hover:bg-white hover:text-stone-900 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                    title="Redo (Ctrl+Shift+Z)"
+                  >
+                    <Redo2 size={18} />
+                  </button>
+                </div>
+                
+                <span className="text-xs text-stone-400 font-mono hidden sm:block">
+                  v{currentIndex + 1}/{historyLength}
                 </span>
              </div>
+
              <a
               href={currentImage}
               download={`edited-garden-${Date.now()}.png`}
