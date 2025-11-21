@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plant } from '../types';
 import { generatePlantImage, generatePlantDescription } from '../services/gemini';
@@ -157,6 +158,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
           onEnhance={() => handleEnhanceDescription(hoveredPlantData.plant)}
           isGeneratingImage={generatingIds.has(hoveredPlantData.plant.id)}
           onGenerateImage={() => handleGenerateAIImage(undefined, hoveredPlantData.plant)}
+          onAddToDesign={onAddToDesign}
         />
       )}
     </div>

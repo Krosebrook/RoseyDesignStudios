@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet } from 'lucide-react';
+import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet, PlusCircle } from 'lucide-react';
 
 interface PlantDetailPopoverProps {
   plant: Plant;
@@ -11,6 +11,7 @@ interface PlantDetailPopoverProps {
   onEnhance?: () => void;
   onGenerateImage?: () => void;
   isGeneratingImage?: boolean;
+  onAddToDesign?: (plantName: string) => void;
 }
 
 export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({ 
@@ -20,7 +21,8 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
   isEnhancing,
   onEnhance,
   onGenerateImage,
-  isGeneratingImage
+  isGeneratingImage,
+  onAddToDesign
 }) => {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -145,6 +147,19 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
                  <div className="text-sm text-stone-800">{plant.scientificName}</div>
              </div>
           </div>
+      )}
+
+      {/* Add to Design Button */}
+      {onAddToDesign && (
+        <div className="mt-4 pt-3 border-t border-stone-100 pointer-events-auto">
+            <button
+                onClick={() => onAddToDesign(plant.name)}
+                className="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+            >
+                <PlusCircle size={16} />
+                Add to Design
+            </button>
+        </div>
       )}
     </div>
   );
