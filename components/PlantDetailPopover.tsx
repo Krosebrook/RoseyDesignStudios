@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet, PlusCircle } from 'lucide-react';
+import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet, PlusCircle, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { GENERATION_STYLES, GENERATION_LIGHTING } from '../data/constants';
 
 interface PlantDetailPopoverProps {
   plant: Plant;
@@ -9,7 +10,7 @@ interface PlantDetailPopoverProps {
   enhancedDescription?: string;
   isEnhancing?: boolean;
   onEnhance?: () => void;
-  onGenerateImage?: () => void;
+  onGenerateImage?: (style?: string, lighting?: string) => void;
   isGeneratingImage?: boolean;
   onAddToDesign?: (plantName: string) => void;
 }
@@ -25,6 +26,10 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
   onAddToDesign
 }) => {
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [showGenOptions, setShowGenOptions] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<string>('');
+  const [selectedLighting, setSelectedLighting] = useState<string>('');
+  
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,7 +58,16 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
     if (top < padding) top = padding;
 
     setPosition({ top, left });
-  }, [rect, enhancedDescription]); 
+  }, [rect, enhancedDescription, showGenOptions]); 
+
+  const handleGenerateClick = () => {
+    if (onGenerateImage) {
+      onGenerateImage(
+        selectedStyle === '' ? undefined : selectedStyle, 
+        selectedLighting === '' ? undefined : selectedLighting
+      );
+    }
+  };
 
   return (
     <div 
@@ -74,17 +88,17 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
       </div>
       
       <div className="relative group mb-4 pb-4 border-b border-stone-100 min-h-[80px]">
-        <p className="text-stone-600 text-sm leading-relaxed">
+        <p className="text-stone-600 text-sm leading-relaxed line-clamp-4 hover:line-clamp-none transition-all">
           {enhancedDescription || plant.description}
         </p>
         
         {/* AI Actions Row */}
-        <div className="mt-3 flex gap-2 pointer-events-auto">
+        <div className="mt-3 flex flex-wrap gap-2 pointer-events-auto">
            {!enhancedDescription && onEnhance && (
              <button 
                onClick={onEnhance}
                disabled={isEnhancing}
-               className="text-[10px] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-medium transition-colors"
+               className="text-[10px] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-medium transition-colors border border-indigo-100"
              >
                {isEnhancing ? <span className="animate-spin">⏳</span> : <Sparkles size={10} />}
                {isEnhancing ? 'Writing...' : 'Enhance Description'}
@@ -93,15 +107,70 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
            
            {onGenerateImage && (
              <button 
-               onClick={onGenerateImage}
-               disabled={isGeneratingImage}
-               className="text-[10px] flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium transition-colors"
+               onClick={() => setShowGenOptions(!showGenOptions)}
+               className={`text-[10px] flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-colors border ${showGenOptions ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'}`}
              >
-                {isGeneratingImage ? <span className="animate-spin">⏳</span> : <ImagePlus size={10} />}
-                {isGeneratingImage ? 'Generating...' : 'New Image'}
+                <Settings2 size={10} />
+                Customize Image
              </button>
            )}
         </div>
+
+        {/* Custom Generation Options */}
+        {showGenOptions && onGenerateImage && (
+          <div className="mt-3 bg-stone-50 p-3 rounded-lg border border-stone-100 pointer-events-auto animate-fade-in">
+             <div className="space-y-2 mb-3">
+                <div>
+                   <label className="text-[10px] font-bold text-stone-500 uppercase block mb-1">Artistic Style</label>
+                   <select 
+                      value={selectedStyle} 
+                      onChange={(e) => setSelectedStyle(e.target.value)}
+                      className="w-full text-xs p-1.5 rounded border border-stone-200 bg-white focus:border-amber-400 outline-none"
+                   >
+                      <option value="">Surprise Me (Random)</option>
+                      {GENERATION_STYLES.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                   </select>
+                </div>
+                <div>
+                   <label className="text-[10px] font-bold text-stone-500 uppercase block mb-1">Lighting</label>
+                   <select 
+                      value={selectedLighting} 
+                      onChange={(e) => setSelectedLighting(e.target.value)}
+                      className="w-full text-xs p-1.5 rounded border border-stone-200 bg-white focus:border-amber-400 outline-none"
+                   >
+                      <option value="">Surprise Me (Random)</option>
+                      {GENERATION_LIGHTING.map(l => (
+                        <option key={l} value={l}>{l}</option>
+                      ))}
+                   </select>
+                </div>
+             </div>
+             <button 
+               onClick={handleGenerateClick}
+               disabled={isGeneratingImage}
+               className="w-full text-xs flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md font-bold transition-colors shadow-sm disabled:opacity-50"
+             >
+                {isGeneratingImage ? <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" /> : <ImagePlus size={12} />}
+                {isGeneratingImage ? 'Generating...' : 'Generate Variation'}
+             </button>
+          </div>
+        )}
+        
+        {/* Simple button if options hidden */}
+        {!showGenOptions && onGenerateImage && (
+            <div className="mt-2 pointer-events-auto">
+               <button 
+                  onClick={() => onGenerateImage()}
+                  disabled={isGeneratingImage}
+                  className="text-[10px] flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium transition-colors border border-amber-100"
+                >
+                    {isGeneratingImage ? <span className="animate-spin">⏳</span> : <ImagePlus size={10} />}
+                    {isGeneratingImage ? 'Generating...' : 'New Image (Random)'}
+                </button>
+            </div>
+        )}
       </div>
       
       {plant.category === 'Plant' && plant.sunlight && plant.water && plant.seasons ? (

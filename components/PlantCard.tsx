@@ -52,21 +52,23 @@ export const PlantCard: React.FC<PlantCardProps> = ({
     if (onDragStart) {
       onDragStart(e, plant.name);
       
-      // Create a custom drag ghost image
+      // Create a custom drag ghost image using the CURRENTLY selected variation
+      const currentSrc = images[currentIndex] || images[0];
+      
       const ghost = document.createElement('div');
       ghost.style.width = '64px';
       ghost.style.height = '64px';
       ghost.style.borderRadius = '50%';
       ghost.style.overflow = 'hidden';
       ghost.style.border = '3px solid #22c55e'; // primary-500
-      ghost.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+      ghost.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
       ghost.style.position = 'absolute';
       ghost.style.top = '-1000px'; // Hide from view initially
       ghost.style.backgroundColor = 'white';
       ghost.style.zIndex = '9999';
       
       const ghostImg = document.createElement('img');
-      ghostImg.src = images[0];
+      ghostImg.src = currentSrc;
       ghostImg.style.width = '100%';
       ghostImg.style.height = '100%';
       ghostImg.style.objectFit = 'cover';
@@ -79,7 +81,9 @@ export const PlantCard: React.FC<PlantCardProps> = ({
       
       // Cleanup the DOM element after a short delay
       setTimeout(() => {
-          document.body.removeChild(ghost);
+          if (document.body.contains(ghost)) {
+            document.body.removeChild(ghost);
+          }
       }, 0);
     }
   };
@@ -128,7 +132,11 @@ export const PlantCard: React.FC<PlantCardProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-stone-100 group flex flex-col h-full relative">
+    <div 
+      draggable={isDraggable}
+      onDragStart={handleDragStartInternal}
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-stone-100 group flex flex-col h-full relative ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+    >
       <div className="relative h-48 overflow-hidden bg-stone-200 group/image">
         <img 
           src={images[currentIndex] || images[0]} 

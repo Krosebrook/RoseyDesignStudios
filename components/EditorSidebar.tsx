@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { PlantCard } from './PlantCard';
 
@@ -39,6 +39,10 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   onAddToDesign,
   onOpenCamera
 }) => {
+  const [showCustomItem, setShowCustomItem] = useState(false);
+  const [customItemName, setCustomItemName] = useState('');
+  const [customItemDetails, setCustomItemDetails] = useState('');
+
   return (
     <div className="lg:col-span-4 flex flex-col h-full max-h-[800px]">
       {/* Tabs */}
@@ -171,9 +175,58 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   className="w-full pl-9 pr-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none"
                 />
               </div>
-              <p className="text-xs text-stone-500 mt-2">
-                Drag items onto the canvas to add them.
-              </p>
+
+              {/* Custom Item Adder */}
+              <div className="mt-3">
+                 <button
+                    onClick={() => setShowCustomItem(!showCustomItem)}
+                    className={`w-full py-2 px-3 border border-dashed rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${showCustomItem ? 'bg-stone-100 border-stone-300 text-stone-500' : 'bg-white border-primary-200 text-primary-600 hover:bg-primary-50'}`}
+                 >
+                    {showCustomItem ? 'Cancel' : <><Plus size={16} /> Add Custom Item</>}
+                 </button>
+                 
+                 {showCustomItem && (
+                     <div className="mt-3 p-3 bg-stone-50 rounded-xl border border-stone-200 animate-fade-in">
+                        <input
+                          type="text"
+                          placeholder="Name (e.g. Fire Pit)"
+                          value={customItemName}
+                          onChange={(e) => setCustomItemName(e.target.value)}
+                          className="w-full p-2 mb-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-white"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Details (e.g. rusted metal, round)"
+                          value={customItemDetails}
+                          onChange={(e) => setCustomItemDetails(e.target.value)}
+                          className="w-full p-2 mb-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-white"
+                        />
+                        <button
+                          onClick={() => {
+                             if (customItemName.trim()) {
+                                 const fullDescription = customItemDetails.trim() 
+                                    ? `${customItemName} (${customItemDetails})` 
+                                    : customItemName;
+                                 onAddToDesign(fullDescription);
+                                 setCustomItemName('');
+                                 setCustomItemDetails('');
+                                 setShowCustomItem(false);
+                             }
+                          }}
+                          disabled={!customItemName.trim()}
+                          className="w-full py-2 bg-stone-800 hover:bg-black text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+                        >
+                          Add to Design
+                        </button>
+                     </div>
+                 )}
+              </div>
+              
+              {!showCustomItem && (
+                 <p className="text-xs text-stone-500 mt-2">
+                   Drag items onto the canvas or click "Add Custom Item" to create your own.
+                 </p>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">

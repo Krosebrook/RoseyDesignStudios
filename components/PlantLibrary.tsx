@@ -128,6 +128,11 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
                 isGenerating={generatingIds.has(plant.id)}
                 onGenerateAI={handleGenerateAIImage}
                 onAddToDesign={onAddToDesign}
+                isDraggable={true}
+                onDragStart={(e, name) => {
+                    e.dataTransfer.setData('plantName', name);
+                    e.dataTransfer.effectAllowed = 'copy';
+                }}
               />
             </div>
           ))}
@@ -157,7 +162,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
           isEnhancing={enhancingDescIds.has(hoveredPlantData.plant.id)}
           onEnhance={() => handleEnhanceDescription(hoveredPlantData.plant)}
           isGeneratingImage={generatingIds.has(hoveredPlantData.plant.id)}
-          onGenerateImage={() => handleGenerateAIImage(undefined, hoveredPlantData.plant)}
+          onGenerateImage={(style, lighting) => handleGenerateAIImage(undefined, hoveredPlantData.plant, style, lighting)}
           onAddToDesign={onAddToDesign}
         />
       )}

@@ -246,18 +246,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     p.name.toLowerCase().includes(plantSearch.toLowerCase())
   );
 
-  // Calculate currentIndex based on currentImage match (simple approximation for Editor view)
-  // In a real app, we'd pass currentIndex from the hook explicitly, but here we have it available via hook return
-  // We can't easily get it from hook return inside JSX unless we change logic, but wait...
-  // I updated useImageHistory to return canRedo/redo/undo/history. 
-  // I need to pass the actual index to EditorCanvas for the "v1/5" display.
-  // The hook internal `currentIndex` isn't exposed. I should expose it.
-  
-  // Re-checking the hook implementation above... I removed 'currentIndex' from the return.
-  // Let's assume I will fix that in the hook XML above or I calculate it here. 
-  // Calculating it here is safer if I can't edit the hook output again in this turn (I can).
-  // I will expose `currentIndex` in the hook above.
-
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
        <div className="mb-8 text-center flex items-center justify-center relative">
@@ -270,16 +258,16 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
            <button 
              onClick={handleSaveProject}
              disabled={!currentImage || saveStatus === 'saving'}
-             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm border ${
+             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md transform active:scale-95 ${
                 saveStatus === 'saved' 
-                  ? 'bg-green-50 border-green-200 text-green-700' 
+                  ? 'bg-green-600 text-white border-transparent' 
                   : saveStatus === 'saving'
-                  ? 'bg-stone-50 border-stone-200 text-stone-400 cursor-wait'
-                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                  ? 'bg-stone-100 text-stone-400 cursor-wait'
+                  : 'bg-stone-900 text-white hover:bg-stone-800'
              }`}
            >
              {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
-             {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save Project'}
+             {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save Design'}
            </button>
         </div>
       </div>
@@ -317,10 +305,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
           canUndo={canUndo}
           canRedo={canRedo}
           historyLength={history.length}
-          // We need the index. Since I exposed it in the hook, we can use history.indexOf(currentImage) 
-          // BUT duplicate images might exist. Best to rely on the hook's state.
-          // Limitation: I can't change the Hook return type in the Editor.tsx usage without updating the Hook file content.
-          // I DID update the hook file content above to include `redo`, I should expose `currentIndex` there too.
           currentIndex={history.findIndex(h => h === currentImage)} 
         />
       </div>
@@ -330,16 +314,16 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
          <button 
              onClick={handleSaveProject}
              disabled={!currentImage || saveStatus === 'saving'}
-             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all shadow-sm border ${
+             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-md ${
                 saveStatus === 'saved' 
-                  ? 'bg-green-50 border-green-200 text-green-700' 
+                  ? 'bg-green-600 text-white' 
                   : saveStatus === 'saving'
-                  ? 'bg-stone-50 border-stone-200 text-stone-400 cursor-wait'
-                  : 'bg-white border-stone-200 text-stone-600'
+                  ? 'bg-stone-100 text-stone-400 cursor-wait'
+                  : 'bg-stone-900 text-white hover:bg-stone-800'
              }`}
            >
              {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
-             {saveStatus === 'saved' ? 'Design Saved!' : 'Save Project to Device'}
+             {saveStatus === 'saved' ? 'Design Saved!' : 'Save Design'}
            </button>
       </div>
 

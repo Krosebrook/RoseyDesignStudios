@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ImagePlus, Plus, X, Download, Sprout, Box, Layers, Undo2, Redo2, CornerDownLeft } from 'lucide-react';
 import { LoadingState } from '../types';
@@ -159,7 +160,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 <div className="absolute inset-0 m-4 rounded-xl flex items-center justify-center pointer-events-none z-30">
                   <div className="bg-white/95 px-8 py-4 rounded-2xl shadow-xl text-primary-700 font-bold flex flex-col items-center gap-2 animate-bounce border-2 border-primary-100">
                     <CornerDownLeft size={32} className="text-primary-500" /> 
-                    <span>Release to Add Plant</span>
+                    <span>Release to Add Item</span>
                   </div>
                 </div>
               )}
