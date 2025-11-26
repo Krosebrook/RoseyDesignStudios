@@ -94,7 +94,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           ) : (
             <div 
               className={`relative w-full h-full flex items-center justify-center transition-all duration-200 
-                ${isDraggingOver ? 'bg-primary-50/30 ring-4 ring-inset ring-primary-300' : 'bg-stone-900/5'}
+                ${isDraggingOver ? 'bg-primary-50/30 border-4 border-dashed border-primary-400 animate-pulse' : 'bg-stone-900/5 border-4 border-transparent'}
               `}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}

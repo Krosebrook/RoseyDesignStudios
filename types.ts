@@ -33,6 +33,8 @@ export type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
 export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture';
 
+export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical' | 'Formal' | 'Woodland';
+
 export interface Plant {
   id: string;
   name: string;
@@ -43,6 +45,7 @@ export interface Plant {
   seasons?: Season[];
   imageUrl: string;
   category: ItemCategory;
+  styles?: GardenStyle[];
 }
 
 export interface SavedDesign {

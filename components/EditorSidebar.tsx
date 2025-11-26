@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus } from 'lucide-react';
+import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus, PenTool, Eraser } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { PlantCard } from './PlantCard';
 
@@ -42,6 +42,18 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   const [showCustomItem, setShowCustomItem] = useState(false);
   const [customItemName, setCustomItemName] = useState('');
   const [customItemDetails, setCustomItemDetails] = useState('');
+
+  const handleAddCustomItem = () => {
+    if (customItemName.trim()) {
+        const promptAddition = customItemDetails.trim() 
+            ? `${customItemName} (${customItemDetails})`
+            : customItemName;
+        onAddToDesign(promptAddition);
+        setCustomItemName('');
+        setCustomItemDetails('');
+        setShowCustomItem(false);
+    }
+  };
 
   return (
     <div className="lg:col-span-4 flex flex-col h-full max-h-[800px]">
@@ -103,14 +115,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   onChange={onFileUpload} 
                   className="hidden" 
                   accept="image/*"
-                />
-                
-                {loading.operation === 'uploading' && (
-                   <div className="mt-4 text-center text-xs text-primary-600 flex items-center justify-center gap-2 bg-primary-50 p-2 rounded-lg">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
-                      {loading.message}
-                   </div>
-                )}
+              />
             </div>
 
             {/* Text Edit Section */}
@@ -144,10 +149,6 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                     <>Apply Edits <ArrowRight size={16} /></>
                   )}
                 </button>
-                
-                {loading.error && (
-                  <p className="text-red-500 text-xs text-center">{loading.error}</p>
-                )}
               </div>
             </div>
 
@@ -165,7 +166,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
           // Item Palette Section
           <div className="bg-white rounded-2xl shadow-sm border border-stone-200 flex flex-col h-full overflow-hidden">
             <div className="p-4 border-b border-stone-100">
-              <div className="relative">
+              <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
                 <input
                   type="text"
@@ -175,57 +176,52 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   className="w-full pl-9 pr-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none"
                 />
               </div>
-
-              {/* Custom Item Adder */}
-              <div className="mt-3">
-                 <button
-                    onClick={() => setShowCustomItem(!showCustomItem)}
-                    className={`w-full py-2 px-3 border border-dashed rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${showCustomItem ? 'bg-stone-100 border-stone-300 text-stone-500' : 'bg-white border-primary-200 text-primary-600 hover:bg-primary-50'}`}
-                 >
-                    {showCustomItem ? 'Cancel' : <><Plus size={16} /> Add Custom Item</>}
-                 </button>
-                 
-                 {showCustomItem && (
-                     <div className="mt-3 p-3 bg-stone-50 rounded-xl border border-stone-200 animate-fade-in">
-                        <input
-                          type="text"
-                          placeholder="Name (e.g. Fire Pit)"
-                          value={customItemName}
-                          onChange={(e) => setCustomItemName(e.target.value)}
-                          className="w-full p-2 mb-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-white"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Details (e.g. rusted metal, round)"
-                          value={customItemDetails}
-                          onChange={(e) => setCustomItemDetails(e.target.value)}
-                          className="w-full p-2 mb-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-white"
-                        />
-                        <button
-                          onClick={() => {
-                             if (customItemName.trim()) {
-                                 const fullDescription = customItemDetails.trim() 
-                                    ? `${customItemName} (${customItemDetails})` 
-                                    : customItemName;
-                                 onAddToDesign(fullDescription);
-                                 setCustomItemName('');
-                                 setCustomItemDetails('');
-                                 setShowCustomItem(false);
-                             }
-                          }}
-                          disabled={!customItemName.trim()}
-                          className="w-full py-2 bg-stone-800 hover:bg-black text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
-                        >
-                          Add to Design
-                        </button>
-                     </div>
-                 )}
-              </div>
               
-              {!showCustomItem && (
-                 <p className="text-xs text-stone-500 mt-2">
-                   Drag items onto the canvas or click "Add Custom Item" to create your own.
-                 </p>
+              {/* Custom Item Buttons */}
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowCustomItem(!showCustomItem)}
+                  className="flex-1 py-2 px-3 bg-stone-50 hover:bg-stone-100 text-stone-600 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border border-stone-200 transition-colors"
+                >
+                  {showCustomItem ? <Plus size={14} className="rotate-45" /> : <PenTool size={14} />}
+                  {showCustomItem ? 'Cancel' : 'Custom Item'}
+                </button>
+
+                <button 
+                  onClick={() => onAddToDesign("Remove the last added item")}
+                  className="flex-1 py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border border-red-100 transition-colors"
+                  title="Add 'Remove last item' to prompt"
+                >
+                  <Eraser size={14} />
+                  Remove Item
+                </button>
+              </div>
+
+              {/* Custom Item Form */}
+              {showCustomItem && (
+                <div className="mt-3 p-3 bg-stone-50 rounded-lg border border-stone-200 animate-fade-in">
+                    <input 
+                        type="text"
+                        placeholder="Item Name (e.g. Garden Gnome)"
+                        value={customItemName}
+                        onChange={(e) => setCustomItemName(e.target.value)}
+                        className="w-full p-2 mb-2 rounded border border-stone-300 text-xs"
+                    />
+                    <input 
+                        type="text"
+                        placeholder="Details (e.g. Red hat, ceramic)"
+                        value={customItemDetails}
+                        onChange={(e) => setCustomItemDetails(e.target.value)}
+                        className="w-full p-2 mb-2 rounded border border-stone-300 text-xs"
+                    />
+                    <button 
+                        onClick={handleAddCustomItem}
+                        disabled={!customItemName.trim()}
+                        className="w-full bg-primary-600 text-white py-1.5 rounded text-xs font-bold disabled:opacity-50"
+                    >
+                        Add to Design Prompt
+                    </button>
+                </div>
               )}
             </div>
 
@@ -235,7 +231,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   <PlantCard
                     key={plant.id}
                     plant={plant}
-                    images={[plant.imageUrl]}
+                    images={[plant.imageUrl]} // Simplified for sidebar
                     isGenerating={false}
                     onGenerateAI={() => {}}
                     onAddToDesign={onAddToDesign}

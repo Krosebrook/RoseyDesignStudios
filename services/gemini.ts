@@ -1,6 +1,7 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 import { AspectRatio } from "../types";
-import { GENERATION_ANGLES, GENERATION_LIGHTING, GENERATION_STYLES } from "../data/constants";
+import { GENERATION_ANGLES, GENERATION_LIGHTING, GENERATION_STYLES, buildPlantImagePrompt, buildPlantDescriptionPrompt } from "../data/constants";
 import { cleanBase64, getMimeType } from "../utils/image";
 
 const getAI = () => {
@@ -154,11 +155,13 @@ export const getQuickTip = async (): Promise<string> => {
 };
 
 // --- SEASONAL TIPS (FLASH LITE) ---
-export const getSeasonalGardeningTip = async (season: string): Promise<string> => {
+export const getSeasonalGardeningTip = async (season: string, style?: string): Promise<string> => {
   const ai = getAI();
+  const styleContext = style ? `for a ${style} style garden` : 'for home gardeners';
+  
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-lite-latest',
-    contents: `Provide a single, helpful, and interesting gardening tip for the ${season} season. Keep it under 25 words. Focus on what to plant or care for.`,
+    contents: `Provide a single, helpful, and interesting gardening tip for the ${season} season ${styleContext}. Keep it under 25 words. Focus on what to plant or care for.`,
   });
   return response.text || `It's a great time to get out in the garden and enjoy the ${season} weather!`;
 };
@@ -190,27 +193,8 @@ export const generatePlantImage = async (
       }
   }
   
-  // High variance seed
   const variationSeed = Math.floor(Math.random() * 999999999);
-  const timestamp = Date.now();
-
-  const prompt = `
-    Create a distinctly unique high-resolution image of ${plantName}. 
-    Context: ${description}.
-    
-    ARTISTIC DIRECTION:
-    - Style: ${selectedStyle}
-    - Perspective: ${randomAngle}
-    - Lighting: ${selectedLighting}
-    
-    REQUIREMENTS:
-    - Focus purely on the plant aesthetics.
-    - High detail, 8k resolution.
-    - Make it look distinctively different from standard stock photos.
-    - Use the random seed to vary composition, zoom level, and background blur.
-    - Ensure uniqueness compared to typical ${plantName} photos.
-    - Random Noise Seed: ${variationSeed}-${timestamp}
-  `;
+  const prompt = buildPlantImagePrompt(plantName, description, selectedStyle, randomAngle, selectedLighting, variationSeed);
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
@@ -228,7 +212,7 @@ export const generatePlantImage = async (
 
 export const generatePlantDescription = async (plantName: string, currentDescription: string): Promise<string> => {
   const ai = getAI();
-  const prompt = `Write a captivating description for ${plantName}. Base: "${currentDescription}". Focus on aesthetics and care. Under 80 words.`;
+  const prompt = buildPlantDescriptionPrompt(plantName, currentDescription);
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',

@@ -1,15 +1,16 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { editGardenImage } from '../services/gemini';
 import { LoadingState, GeneratedImage } from '../types';
 import { PLANTS } from '../data/plants';
 import { useImageHistory } from '../hooks/useImageHistory';
 import { useMarkers } from '../hooks/useMarkers';
+import { useProjectStorage } from '../hooks/useProjectStorage';
 import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
 import { Save, Check } from 'lucide-react';
 import { CameraModal } from './CameraModal';
 import { EDIT_LOADING_MESSAGES } from '../data/constants';
-import { compressImage } from '../utils/image';
 
 interface EditorProps {
   initialImage: GeneratedImage | null;
@@ -44,12 +45,14 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     canRedo
   } = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
 
-  // Marker State Logic Extracted
+  // Extracted logic for Markers
   const { markers, addMarker, removeMarkerById, clearMarkers } = useMarkers();
+  
+  // Extracted logic for Storage
+  const { saveProject, saveStatus } = useProjectStorage();
 
   const [editPrompt, setEditPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showCamera, setShowCamera] = useState(false);
   
   // UI State
@@ -151,36 +154,8 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     }
   };
 
-  const handleSaveProject = async () => {
-    if (!currentImage) return;
-    setSaveStatus('saving');
-    
-    try {
-      // Compress the current image to ensure it fits in LocalStorage
-      // We compress specifically for saving state; the user still sees the high res one until they reload
-      const compressedImage = await compressImage(currentImage, 0.7, 1024);
-      
-      // Compress history images (limit to last 5 to be safe with storage limits)
-      const historyToSave = history.slice(-5);
-      const compressedHistory = await Promise.all(
-        historyToSave.map(img => compressImage(img, 0.7, 1024))
-      );
-      
-      const savedData = {
-        currentImage: compressedImage,
-        history: compressedHistory,
-        timestamp: Date.now()
-      };
-      
-      localStorage.setItem('dreamGarden_saved', JSON.stringify(savedData));
-      
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (e) {
-      console.error("Failed to save project", e);
-      alert("Could not save project. Browser storage is full.");
-      setSaveStatus('idle');
-    }
+  const handleSaveProject = () => {
+    saveProject(currentImage, history);
   };
 
   // --- Drag and Drop Logic ---

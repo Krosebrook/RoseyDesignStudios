@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
-import { Season, Plant } from '../types';
+import { Season, Plant, GardenStyle } from '../types';
 import { PLANTS } from '../data/plants';
 import { getSeasonalGardeningTip } from '../services/gemini';
-import { CloudRain, Sun, Wind, Snowflake, Sparkles, ArrowRight } from 'lucide-react';
+import { CloudRain, Sun, Wind, Snowflake, Sparkles, ArrowRight, Palette } from 'lucide-react';
 import { PlantCard } from './PlantCard';
 
 interface SeasonalSpotlightProps {
@@ -20,6 +20,7 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
   onGenerateAI
 }) => {
   const [currentSeason, setCurrentSeason] = useState<Season>('Spring');
+  const [selectedStyle, setSelectedStyle] = useState<GardenStyle | 'All'>('All');
   const [tip, setTip] = useState<string>('');
   const [loadingTip, setLoadingTip] = useState(false);
 
@@ -37,13 +38,13 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
     else s = 'Autumn';
     
     setCurrentSeason(s);
-    fetchTip(s);
+    fetchTip(s, selectedStyle === 'All' ? undefined : selectedStyle);
   }, []);
 
-  const fetchTip = async (season: Season) => {
+  const fetchTip = async (season: Season, style?: string) => {
     setLoadingTip(true);
     try {
-      const t = await getSeasonalGardeningTip(season);
+      const t = await getSeasonalGardeningTip(season, style);
       setTip(t);
     } catch (e) {
       console.error("Failed to fetch tip", e);
@@ -55,11 +56,22 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
 
   const handleSeasonChange = (s: Season) => {
     setCurrentSeason(s);
-    fetchTip(s);
+    fetchTip(s, selectedStyle === 'All' ? undefined : selectedStyle);
+  };
+  
+  const handleStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const style = e.target.value as GardenStyle | 'All';
+      setSelectedStyle(style);
+      fetchTip(currentSeason, style === 'All' ? undefined : style);
   };
 
   // Ensure we only filter items that HAVE seasons (Category = Plant)
-  const seasonalPlants = PLANTS.filter(p => p.seasons && p.seasons.includes(currentSeason));
+  // And filter by selected style if applicable
+  const seasonalPlants = PLANTS.filter(p => {
+      const isSeasonal = p.seasons && p.seasons.includes(currentSeason);
+      const isStyleMatch = selectedStyle === 'All' || (p.styles && p.styles.includes(selectedStyle));
+      return isSeasonal && isStyleMatch;
+  });
 
   const seasonConfig = {
     Spring: { icon: CloudRain, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
@@ -69,22 +81,37 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
   };
 
   const CurrentIcon = seasonConfig[currentSeason].icon;
+  const gardenStyles: GardenStyle[] = ['Cottage', 'Modern', 'Zen', 'Xeriscape', 'Tropical', 'Formal', 'Woodland'];
 
   return (
-    <div className={`mb-12 rounded-3xl border ${seasonConfig[currentSeason].border} ${seasonConfig[currentSeason].bg} overflow-hidden transition-colors duration-500`}>
+    <div className={`mb-12 rounded-3xl border ${seasonConfig[currentSeason].border} ${seasonConfig[currentSeason].bg} overflow-hidden transition-colors duration-500 shadow-sm`}>
       <div className="p-6 md:p-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-xs font-bold uppercase tracking-wider shadow-sm ${seasonConfig[currentSeason].color}`}>
                  <CurrentIcon size={14} /> {currentSeason} Spotlight
                </span>
+               
+               <div className="relative inline-block">
+                  <Palette size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <select 
+                    value={selectedStyle}
+                    onChange={handleStyleChange}
+                    className="pl-8 pr-3 py-1 rounded-full bg-white text-xs font-bold uppercase tracking-wider shadow-sm text-stone-600 border-none outline-none focus:ring-1 focus:ring-stone-200 cursor-pointer appearance-none"
+                    style={{ WebkitAppearance: 'none' }}
+                  >
+                     <option value="All">All Styles</option>
+                     {gardenStyles.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+               </div>
             </div>
+            
             <h2 className="text-3xl font-bold text-stone-800">Perfect for {currentSeason}</h2>
             <div className="mt-3 flex items-start gap-2 max-w-xl">
                <Sparkles size={18} className={`mt-1 flex-shrink-0 ${seasonConfig[currentSeason].color}`} />
                <p className={`text-stone-700 font-medium leading-relaxed ${loadingTip ? 'animate-pulse' : ''}`}>
-                 {tip || "Loading seasonal tips..."}
+                 {tip || "Loading tailored seasonal tips..."}
                </p>
             </div>
           </div>
@@ -137,8 +164,15 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
                 )}
              </div>
            ) : (
-             <div className="bg-white/50 rounded-xl p-8 text-center text-stone-500">
-                No specific recommendations found for this season in our current database.
+             <div className="bg-white/50 rounded-xl p-10 text-center text-stone-500 border-2 border-dashed border-stone-200">
+                <Palette size={48} className="mx-auto mb-4 opacity-20" />
+                <p className="font-medium">No plants match the '{selectedStyle}' style for {currentSeason}.</p>
+                <button 
+                    onClick={() => { setSelectedStyle('All'); fetchTip(currentSeason); }}
+                    className="mt-4 text-sm text-primary-600 font-medium hover:underline"
+                >
+                    Show all {currentSeason} plants
+                </button>
              </div>
            )}
         </div>

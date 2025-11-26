@@ -12,7 +12,8 @@ export const PLANTS: Plant[] = [
     water: 'Drought-tolerant',
     seasons: ['Spring', 'Summer'],
     imageUrl: 'https://images.unsplash.com/photo-1611909023032-2d6b3134ecba?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Cottage', 'Xeriscape', 'Formal']
   },
   {
     id: '2',
@@ -23,7 +24,8 @@ export const PLANTS: Plant[] = [
     water: 'High',
     seasons: ['Summer', 'Autumn'],
     imageUrl: 'https://images.unsplash.com/photo-1505235625736-ab01447a851d?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Cottage', 'Formal']
   },
   {
     id: '3',
@@ -34,7 +36,8 @@ export const PLANTS: Plant[] = [
     water: 'Moderate',
     seasons: ['Spring', 'Summer'],
     imageUrl: 'https://images.unsplash.com/photo-1596527165632-b702a5729c94?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Woodland', 'Zen', 'Cottage']
   },
   {
     id: '4',
@@ -45,7 +48,8 @@ export const PLANTS: Plant[] = [
     water: 'Moderate',
     seasons: ['Summer'],
     imageUrl: 'https://images.unsplash.com/photo-1470509037663-253ce7169acb?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Cottage']
   },
   {
     id: '5',
@@ -56,7 +60,8 @@ export const PLANTS: Plant[] = [
     water: 'High',
     seasons: ['Spring', 'Summer', 'Autumn'],
     imageUrl: 'https://images.unsplash.com/photo-1525466559287-3388282b2e82?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Woodland', 'Zen', 'Tropical']
   },
   {
     id: '6',
@@ -67,7 +72,8 @@ export const PLANTS: Plant[] = [
     water: 'Moderate',
     seasons: ['Spring', 'Summer'],
     imageUrl: 'https://images.unsplash.com/photo-1496857239036-1fb137683000?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Cottage', 'Formal']
   },
   {
     id: '7',
@@ -78,7 +84,8 @@ export const PLANTS: Plant[] = [
     water: 'Drought-tolerant',
     seasons: ['Spring', 'Summer', 'Autumn', 'Winter'],
     imageUrl: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Xeriscape', 'Modern', 'Zen']
   },
   {
     id: '8',
@@ -89,7 +96,8 @@ export const PLANTS: Plant[] = [
     water: 'Moderate',
     seasons: ['Spring'],
     imageUrl: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Cottage', 'Formal']
   },
   {
     id: '9',
@@ -100,7 +108,8 @@ export const PLANTS: Plant[] = [
     water: 'Moderate',
     seasons: ['Spring'],
     imageUrl: 'https://images.unsplash.com/photo-1559681934-a6b22c450dfc?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Cottage', 'Formal']
   },
   {
     id: '10',
@@ -111,7 +120,8 @@ export const PLANTS: Plant[] = [
     water: 'Moderate',
     seasons: ['Spring', 'Summer', 'Autumn'],
     imageUrl: 'https://images.unsplash.com/photo-1511524040812-4160943de17b?auto=format&fit=crop&w=800&q=80',
-    category: 'Plant'
+    category: 'Plant',
+    styles: ['Zen', 'Woodland', 'Modern']
   },
   
   // WATER FEATURES
@@ -121,7 +131,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Aquatic Ecosystem',
     description: 'A peaceful water feature with swimming fish, water lilies, and surrounding rock work. Brings life and movement to any garden.',
     imageUrl: 'https://images.unsplash.com/photo-1516475429286-465d815a0df7?auto=format&fit=crop&w=800&q=80',
-    category: 'Water Feature'
+    category: 'Water Feature',
+    styles: ['Zen', 'Tropical']
   },
   {
     id: 'w2',
@@ -129,7 +140,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Tiered Water Feature',
     description: 'A classic multi-tiered stone fountain that provides soothing water sounds and serves as an elegant focal point.',
     imageUrl: 'https://images.unsplash.com/photo-1598626382552-e3629a88127e?auto=format&fit=crop&w=800&q=80',
-    category: 'Water Feature'
+    category: 'Water Feature',
+    styles: ['Formal', 'Cottage']
   },
   {
     id: 'w3',
@@ -137,7 +149,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Ceramic / Stone',
     description: 'A charming addition that attracts local wildlife. Available in various styles from rustic stone to glazed ceramic.',
     imageUrl: 'https://images.unsplash.com/photo-1600675593895-722751950b0e?auto=format&fit=crop&w=800&q=80',
-    category: 'Water Feature'
+    category: 'Water Feature',
+    styles: ['Cottage', 'Woodland']
   },
 
   // FURNITURE
@@ -147,7 +160,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Wood Furniture',
     description: 'A durable, weather-resistant wooden bench that naturally weathers to a beautiful silver-grey.',
     imageUrl: 'https://images.unsplash.com/photo-1560746268-9c221d7d591c?auto=format&fit=crop&w=800&q=80',
-    category: 'Furniture'
+    category: 'Furniture',
+    styles: ['Cottage', 'Modern', 'Formal', 'Zen']
   },
   {
     id: 'f2',
@@ -155,7 +169,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Garden Structure',
     description: 'Provides shade and definition to outdoor spaces. Perfect for climbing plants like vines or roses.',
     imageUrl: 'https://images.unsplash.com/photo-1592330775194-3b315470b92e?auto=format&fit=crop&w=800&q=80',
-    category: 'Furniture'
+    category: 'Furniture',
+    styles: ['Modern', 'Cottage', 'Tropical', 'Formal']
   },
   {
     id: 'f3',
@@ -163,7 +178,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Corten Steel',
     description: 'Create a cozy gathering spot for cool evenings. Adds warmth and ambiance to the patio area.',
     imageUrl: 'https://images.unsplash.com/photo-1632930807199-7618c2030518?auto=format&fit=crop&w=800&q=80',
-    category: 'Furniture'
+    category: 'Furniture',
+    styles: ['Modern', 'Cottage', 'Xeriscape']
   },
   {
     id: 'f4',
@@ -171,6 +187,7 @@ export const PLANTS: Plant[] = [
     scientificName: 'Classic Seating',
     description: 'Iconic comfortable outdoor seating with wide armrests and a slanted back. Ideal for relaxing on lawns or patios.',
     imageUrl: 'https://images.unsplash.com/photo-1596115630706-2249490c9551?auto=format&fit=crop&w=800&q=80',
-    category: 'Furniture'
+    category: 'Furniture',
+    styles: ['Cottage']
   }
 ];

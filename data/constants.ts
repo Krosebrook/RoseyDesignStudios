@@ -1,3 +1,4 @@
+
 export const GENERATION_ANGLES = [
   "close-up macro shot showing texture", 
   "eye-level botanical portrait", 
@@ -20,12 +21,19 @@ export const GENERATION_LIGHTING = [
 export const GENERATION_STYLES = [
   "highly detailed photorealistic 8k", 
   "nature documentary style photography", 
-  "vibrant cinematic garden shot",
+  "cinematic garden shot",
+  "vintage botanical illustration",
+  "minimalist vector art",
   "soft watercolor painting",
   "botanical line drawing",
-  "vintage botanical illustration",
   "oil painting style",
-  "minimalist vector art"
+  "impressionist garden painting",
+  "charcoal sketch",
+  "3d render isometric",
+  "pixel art",
+  "cyberpunk neon garden",
+  "pop art style",
+  "surrealist fantasy"
 ];
 
 export const EDIT_LOADING_MESSAGES = [
@@ -50,3 +58,33 @@ export const GENERATOR_SUGGESTIONS = [
   "A lush English cottage garden overflowing with colorful wildflowers and a cobblestone path.",
   "A tropical paradise with palm trees, a hammock, and vibrant exotic flowers."
 ];
+
+// Prompt Builders
+export const buildPlantImagePrompt = (name: string, description: string, style: string, angle: string, lighting: string, seed: number) => `
+    Create a distinctly unique high-resolution image of ${name}. 
+    Context: ${description}.
+    
+    ARTISTIC DIRECTION:
+    - Style: ${style}
+    - Perspective: ${angle}
+    - Lighting: ${lighting}
+    
+    REQUIREMENTS:
+    - Focus purely on the plant aesthetics.
+    - High detail, 8k resolution.
+    - Make it look distinctively different from standard stock photos.
+    - Use the random seed to vary composition, zoom level, and background blur.
+    - Ensure uniqueness compared to typical ${name} photos.
+    - Random Noise Seed: ${seed}
+`;
+
+export const buildPlantDescriptionPrompt = (name: string, currentDescription: string) => `
+    Write a detailed and engaging description for ${name}. 
+    Base Information: "${currentDescription}".
+    
+    Guidelines:
+    - Focus on its aesthetic qualities (color, texture, form).
+    - Mention its suitability for different garden styles (e.g. cottage, modern, zen, xeriscape).
+    - Keep it under 100 words.
+    - Tone: Inspiring and expert.
+`;
