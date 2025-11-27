@@ -15,7 +15,8 @@ export const GENERATION_LIGHTING = [
   "dramatic afternoon shadows", 
   "bright diffused daylight",
   "mysterious moonlight",
-  "studio lighting with black background"
+  "studio lighting with black background",
+  "dappled shade"
 ];
 
 export const GENERATION_STYLES = [
@@ -33,7 +34,12 @@ export const GENERATION_STYLES = [
   "pixel art",
   "cyberpunk neon garden",
   "pop art style",
-  "surrealist fantasy"
+  "surrealist fantasy",
+  "gouache painting",
+  "stained glass art",
+  "low poly 3d model",
+  "macro photography with bokeh",
+  "pencil sketch"
 ];
 
 export const EDIT_LOADING_MESSAGES = [

@@ -17,7 +17,10 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
   const filters = usePlantFiltering();
   const { filteredPlants, clearFilters } = filters;
   const [showFilters, setShowFilters] = useState(false);
+  
+  // "active" takes precedence over "hover". Active means user clicked Customize/Settings.
   const [hoveredPlantData, setHoveredPlantData] = useState<{ plant: Plant; rect: DOMRect } | null>(null);
+  const [activePopover, setActivePopover] = useState<{ plant: Plant; rect: DOMRect; showOptions: boolean } | null>(null);
 
   // Use the new custom hook for AI operations
   const { 
@@ -34,7 +37,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
       e.preventDefault();
       e.stopPropagation();
     }
-    const targetPlant = plant || hoveredPlantData?.plant;
+    const targetPlant = plant || activePopover?.plant || hoveredPlantData?.plant;
     if (targetPlant) {
       generateImage(targetPlant, style, lighting);
     }
@@ -45,20 +48,35 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
         e.preventDefault();
         e.stopPropagation();
     }
-    const targetPlant = plant || hoveredPlantData?.plant;
+    const targetPlant = plant || activePopover?.plant || hoveredPlantData?.plant;
     if (targetPlant) {
       enhanceDescription(targetPlant);
     }
   };
 
-  const handleMouseEnter = (e: React.MouseEvent, plant: Plant) => {
+  const handleCustomize = (e: React.MouseEvent, plant: Plant) => {
+    e.stopPropagation();
+    e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
-    setHoveredPlantData({ plant, rect });
+    // Set active popover to lock it open and show options
+    setActivePopover({ plant, rect, showOptions: true });
+    setHoveredPlantData(null); // Clear hover so they don't conflict
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent, plant: Plant) => {
+    // Only show hover if we don't have an active locked popover
+    if (!activePopover) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setHoveredPlantData({ plant, rect });
+    }
   };
 
   const handleMouseLeave = () => {
     setHoveredPlantData(null);
   };
+
+  // Determine which plant data to use for the popover
+  const popoverData = activePopover || (hoveredPlantData ? { ...hoveredPlantData, showOptions: false } : null);
 
   return (
     <div className="max-w-7xl mx-auto p-6 w-full relative">
@@ -105,6 +123,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
                 enhancedDescription={enhancedDescriptions[plant.id]}
                 onEnhanceDescription={handleEnhanceDescription}
                 isEnhancingDescription={enhancingDescIds.has(plant.id)}
+                onCustomize={handleCustomize}
               />
             </div>
           ))}
@@ -126,16 +145,18 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
       )}
 
       {/* Detail Popover */}
-      {hoveredPlantData && (
+      {popoverData && (
         <PlantDetailPopover 
-          plant={hoveredPlantData.plant} 
-          rect={hoveredPlantData.rect}
-          enhancedDescription={enhancedDescriptions[hoveredPlantData.plant.id]}
-          isEnhancing={enhancingDescIds.has(hoveredPlantData.plant.id)}
-          onEnhance={() => handleEnhanceDescription(undefined, hoveredPlantData.plant)}
-          isGeneratingImage={generatingIds.has(hoveredPlantData.plant.id)}
-          onGenerateImage={(style, lighting) => handleGenerateAIImage(undefined, hoveredPlantData.plant, style, lighting)}
+          plant={popoverData.plant} 
+          rect={popoverData.rect}
+          enhancedDescription={enhancedDescriptions[popoverData.plant.id]}
+          isEnhancing={enhancingDescIds.has(popoverData.plant.id)}
+          onEnhance={() => handleEnhanceDescription(undefined, popoverData.plant)}
+          isGeneratingImage={generatingIds.has(popoverData.plant.id)}
+          onGenerateImage={(style, lighting) => handleGenerateAIImage(undefined, popoverData.plant, style, lighting)}
           onAddToDesign={onAddToDesign}
+          defaultShowOptions={popoverData.showOptions}
+          onClose={activePopover ? () => setActivePopover(null) : undefined}
         />
       )}
     </div>

@@ -2,6 +2,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [v1.2.0] - 2025-05-22 (Production Grade Refactoring)
+
+### 🟢 Refactoring
+- **VoiceChat:** Extracted audio and Live API logic into `hooks/useVoiceAssistant.ts`, making the UI component purely presentational.
+- **Editor:** Extracted geometry calculation logic into `utils/editor.ts` to reduce component size.
+- **Cleanup:** Enhanced type safety and cleaned up unused imports across the codebase.
+
 ## [v1.1.0] - 2025-05-21 (Refactoring & Cleanup)
 
 ### 🟢 Refactoring

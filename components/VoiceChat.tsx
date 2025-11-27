@@ -1,125 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { getAIClient } from '../services/gemini';
-import { LiveServerMessage, Modality } from '@google/genai';
+
+import React from 'react';
 import { Mic, MicOff, Volume2, Activity } from 'lucide-react';
-import { createBlob, decode, decodeAudioData } from '../utils/audio';
+import { useVoiceAssistant } from '../hooks/useVoiceAssistant';
 
 export const VoiceChat: React.FC = () => {
-  const [isActive, setIsActive] = useState(false);
-  const [status, setStatus] = useState('Ready to chat');
-  const [volume, setVolume] = useState(0);
-  
-  // Refs for audio context and processing
-  const inputContextRef = useRef<AudioContext | null>(null);
-  const outputContextRef = useRef<AudioContext | null>(null);
-  const nextStartTimeRef = useRef<number>(0);
-  const sessionRef = useRef<any>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-
-  const cleanup = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    if (inputContextRef.current) inputContextRef.current.close();
-    if (outputContextRef.current) outputContextRef.current.close();
-    // We can't explicitly close the session object in the same way as a websocket, 
-    // but we can stop sending data.
-    setIsActive(false);
-    setStatus('Disconnected');
-  };
-
-  const startSession = async () => {
-    try {
-      setStatus('Connecting...');
-      const ai = getAIClient();
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 16000});
-      const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
-      
-      inputContextRef.current = inputAudioContext;
-      outputContextRef.current = outputAudioContext;
-      nextStartTimeRef.current = 0;
-
-      // Connect Live API
-      const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-        callbacks: {
-          onopen: () => {
-            setStatus('Listening...');
-            setIsActive(true);
-
-            const source = inputAudioContext.createMediaStreamSource(stream);
-            const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
-            
-            scriptProcessor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              
-              // Visualizer volume
-              let sum = 0;
-              for(let i=0; i<inputData.length; i++) sum += inputData[i] * inputData[i];
-              setVolume(Math.sqrt(sum / inputData.length));
-
-              const pcmBlob = createBlob(inputData);
-              sessionPromise.then(session => session.sendRealtimeInput({ media: pcmBlob }));
-            };
-
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputAudioContext.destination);
-          },
-          onmessage: async (message: LiveServerMessage) => {
-            const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-            if (base64Audio) {
-               setStatus('Garden AI is speaking...');
-               const audioCtx = outputContextRef.current!;
-               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioCtx.currentTime);
-               
-               const buffer = await decodeAudioData(
-                 decode(base64Audio),
-                 audioCtx,
-                 24000,
-                 1
-               );
-               
-               const source = audioCtx.createBufferSource();
-               source.buffer = buffer;
-               source.connect(audioCtx.destination);
-               source.start(nextStartTimeRef.current);
-               nextStartTimeRef.current += buffer.duration;
-            }
-
-            if (message.serverContent?.turnComplete) {
-                setStatus('Listening...');
-            }
-          },
-          onclose: () => {
-            setStatus('Connection closed');
-            setIsActive(false);
-          },
-          onerror: (e) => {
-            console.error(e);
-            setStatus('Error occurred');
-            setIsActive(false);
-          }
-        },
-        config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: {
-                voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
-            },
-            systemInstruction: "You are a helpful, friendly, and knowledgeable expert gardener. Answer questions about plants, garden design, and care concisely. If the user asks about features of this app, explain we have a generator, editor, and plant library."
-        }
-      });
-      
-      sessionRef.current = sessionPromise;
-
-    } catch (err) {
-      console.error(err);
-      setStatus('Failed to access microphone');
-    }
-  };
+  const { isActive, status, volume, startSession, disconnect } = useVoiceAssistant();
 
   return (
     <div className="max-w-2xl mx-auto p-6 text-center">
@@ -151,7 +36,7 @@ export const VoiceChat: React.FC = () => {
             </button>
           ) : (
             <button 
-                onClick={cleanup}
+                onClick={disconnect}
                 className="bg-white border-2 border-red-100 text-red-600 hover:bg-red-50 px-8 py-4 rounded-full font-semibold text-lg flex items-center justify-center gap-3 mx-auto transition-colors"
             >
                 <MicOff size={20} /> End Chat

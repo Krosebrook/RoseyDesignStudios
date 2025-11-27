@@ -1,17 +1,17 @@
+
 # DreamGarden AI
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Sprint Status](https://img.shields.io/badge/Sprint-Complete-green)
 
 **DreamGarden AI** is a comprehensive landscape design application powered by Google's Gemini ecosystem. It allows users to generate photorealistic garden designs, edit existing photos using natural language, animate static images into videos, and interact with an AI gardening assistant via voice.
 
-## Latest Updates (AI Integration Sprint)
-We have successfully integrated the full suite of Gemini models:
-- **Imagen 4.0** for high-fidelity generation.
-- **Veo 3.1** for video animation.
-- **Gemini 2.5 Flash/Pro** for editing and analysis.
-- **Gemini Live API** for real-time voice interaction.
+## Latest Updates (Production Refactor)
+We have optimized the codebase for maintainability and separation of concerns:
+- **Custom Hooks:** `useVoiceAssistant`, `usePlantAI`, `useMarkers` handle complex logic.
+- **Utils:** Pure functions extracted for audio, image, and editor geometry.
+- **Component Split:** Monolithic components decomposed into cleaner, focused UI units.
 
 ## Features
 
