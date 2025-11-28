@@ -2,48 +2,29 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [v1.3.0] - 2025-05-23 (Production Robustness)
+
+### 🟢 Robustness & Optimization
+- **Async Safety:** Implemented `useRef` mount tracking in `Generator`, `VideoAnimator`, and `ImageAnalyzer` to prevent state updates on unmounted components (fixing potential memory leaks).
+- **Resource Cleanup:** Added strict `useEffect` teardown logic for `useVoiceAssistant` to release microphone streams and AudioContexts when navigating away.
+- **Accessibility:** Added ARIA labels and roles to navigation elements in `Header` for better screen reader support.
+
 ## [v1.2.0] - 2025-05-22 (Production Grade Refactoring)
 
 ### 🟢 Refactoring
-- **VoiceChat:** Extracted audio and Live API logic into `hooks/useVoiceAssistant.ts`, making the UI component purely presentational.
-- **Editor:** Extracted geometry calculation logic into `utils/editor.ts` to reduce component size.
-- **Cleanup:** Enhanced type safety and cleaned up unused imports across the codebase.
+- **VoiceChat:** Extracted complex audio/socket logic into `hooks/useVoiceAssistant.ts`.
+- **Editor:** Extracted geometry logic to `utils/editor.ts` and marker state to `hooks/useMarkers.ts`.
+- **Cleanup:** Centralized constants and improved type safety across the board.
 
-## [v1.1.0] - 2025-05-21 (Refactoring & Cleanup)
+## [v1.1.0] - 2025-05-21 (Feature Expansion)
 
-### 🟢 Refactoring
-- **Codebase Clean-up**: Centralized AI prompt templates in `data/constants.ts` to separate logic from data.
-- **State Management**: Extracted complex AI state management from `PlantLibrary` into a custom `usePlantAI` hook.
-- **Service Layer**: Simplified `services/gemini.ts` by removing inline prompts and using the new constants.
-- **Documentation**: Added `scripts/sprint_review.py` for automated documentation health checks.
+### 🟢 Features
+- **Seasonal Spotlight:** Dynamic homepage component suggesting plants based on the current month.
+- **Plant AI:** Added specific "Artistic Style" and "Lighting" controls for generating plant variations.
+- **Carousel:** Implemented multi-image carousel for plant variations.
 
-## [v1.0.0] - 2025-05-20 (AI Integration Sprint)
+## [v1.0.0] - 2025-05-20 (Initial Release)
 
-### 🟢 Complete
-- **Core Generator**: Upgraded to **Imagen 4.0** for photorealistic results; added aspect ratio controls.
-- **Editor**: Implemented **Gemini 2.5 Flash Image** editing.
-  - Added Drag-and-Drop plant placement.
-  - Added 3D Perspective View (CSS Transform).
-  - Added "Save Project" (LocalStorage) and Resume functionality.
-  - Added Camera integration for direct capture.
-  - **Refactor:** Added non-destructive **Redo** capability to image history.
-  - **Refactor:** Improved iconography for Undo/Redo actions.
-- **Video**: Integrated **Veo 3.1** for Image-to-Video generation.
-- **Analysis**: Integrated **Gemini 3 Pro** for image analysis.
-  - Added Google Search Grounding for fact-checking.
-- **Voice**: Implemented **Gemini Live API** for real-time bi-directional audio streaming.
-- **Plant Library**:
-  - Added **Seasonal Spotlight** component.
-  - Added AI-powered description enhancement.
-  - Added AI-powered plant image variation generator.
-- **Architecture**:
-  - Refactored monolithic components into `EditorSidebar`, `EditorCanvas`, `PlantCard`.
-  - Centralized constants and audio utilities.
-
-### 🟡 Partial / In-Progress
-- **Mobile Optimization**: The 3D view works on mobile but performance optimization is ongoing.
-- **AR Walkthrough**: Foundation laid with depth estimation concepts, but WebXR implementation is deferred to v1.1.0.
-
-### 🔴 Known Issues
-- **Veo Latency**: Video generation can take 1-2 minutes; polling interval set to 5s.
-- **Browser Support**: Live API (Web Audio) requires recent Chrome/Edge versions.
+### 🟢 Core
+- **GenAI Integration:** Full suite of Gemini models (Flash, Pro, Imagen, Veo) integrated.
+- **UI Framework:** Tailwind CSS with a responsive, mobile-first design.

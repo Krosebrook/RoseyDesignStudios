@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { generateGardenVideo } from '../services/gemini';
 import { LoadingState } from '../types';
 import { Upload, Video, Download, Film, Smartphone, Monitor } from 'lucide-react';
@@ -10,14 +11,22 @@ export const VideoAnimator: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Mount tracking
+  const isMounted = useRef(true);
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setCurrentImage(reader.result as string);
-        setVideoUrl(null); // Clear previous video
+        if (isMounted.current) {
+            setCurrentImage(reader.result as string);
+            setVideoUrl(null); 
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -33,21 +42,28 @@ export const VideoAnimator: React.FC = () => {
       const msgs = ["Creating composition...", "Simulating physics...", "Rendering frames...", "Finalizing video..."];
       let i = 0;
       const interval = setInterval(() => {
-        setLoading(prev => ({ ...prev, message: msgs[i++ % msgs.length] }));
+        if (isMounted.current) {
+            setLoading(prev => ({ ...prev, message: msgs[i++ % msgs.length] }));
+        }
       }, 4000);
 
       const url = await generateGardenVideo(currentImage, prompt, aspectRatio);
       
       clearInterval(interval);
-      setVideoUrl(url);
-      setLoading({ isLoading: false, operation: 'idle', message: '' });
+      
+      if (isMounted.current) {
+          setVideoUrl(url);
+          setLoading({ isLoading: false, operation: 'idle', message: '' });
+      }
     } catch (err) {
-      setLoading({ 
-        isLoading: false, 
-        operation: 'idle', 
-        message: '', 
-        error: 'Video generation failed. It can take a few minutes, try again.' 
-      });
+      if (isMounted.current) {
+          setLoading({ 
+            isLoading: false, 
+            operation: 'idle', 
+            message: '', 
+            error: 'Video generation failed. It can take a few minutes, try again.' 
+          });
+      }
     }
   };
 

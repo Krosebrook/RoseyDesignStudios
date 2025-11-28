@@ -6,9 +6,10 @@ import { PLANTS } from '../data/plants';
 import { useImageHistory } from '../hooks/useImageHistory';
 import { useMarkers } from '../hooks/useMarkers';
 import { useProjectStorage } from '../hooks/useProjectStorage';
+import { useLoadingCycle } from '../hooks/useLoadingCycle';
 import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
-import { Save, Check } from 'lucide-react';
+import { Save, Check, Clock } from 'lucide-react';
 import { CameraModal } from './CameraModal';
 import { EDIT_LOADING_MESSAGES } from '../data/constants';
 import { getPositionDescription } from '../utils/editor';
@@ -33,15 +34,16 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     canRedo
   } = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
 
-  // Extracted logic for Markers
+  // Custom Hooks
   const { markers, addMarker, removeMarkerById, clearMarkers } = useMarkers();
-  
-  // Extracted logic for Storage
-  const { saveProject, saveStatus } = useProjectStorage();
+  const { saveProject, saveStatus, lastSaved } = useProjectStorage();
 
   const [editPrompt, setEditPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [showCamera, setShowCamera] = useState(false);
+  
+  // Use shared loading cycle logic
+  useLoadingCycle(loading, setLoading, EDIT_LOADING_MESSAGES, 'editing');
   
   // UI State
   const [activeTab, setActiveTab] = useState<'tools' | 'plants'>('tools');
@@ -81,22 +83,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
       onClearInstruction?.();
     }
   }, [pendingInstruction, onClearInstruction]);
-
-  // Cycle messages during AI edit
-  useEffect(() => {
-    if (loading.operation !== 'editing') return;
-
-    let messageIndex = 0;
-    const interval = setInterval(() => {
-      messageIndex = (messageIndex + 1) % EDIT_LOADING_MESSAGES.length;
-      setLoading(prev => {
-        if (!prev.isLoading) return prev;
-        return { ...prev, message: EDIT_LOADING_MESSAGES[messageIndex] };
-      });
-    }, 1800);
-
-    return () => clearInterval(interval);
-  }, [loading.operation]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -211,13 +197,14 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
 
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
-       <div className="mb-8 text-center flex items-center justify-center relative">
-        <div>
-          <h2 className="text-3xl font-bold text-stone-800 mb-2">AI Garden Editor</h2>
-          <p className="text-stone-600">Upload a photo or use your design, then use text to make magic happen.</p>
+       <div className="mb-8 text-center flex flex-col md:flex-row items-center justify-center relative gap-4">
+        <div className="md:absolute md:left-0 md:right-0 md:text-center pointer-events-none">
+          <h2 className="text-3xl font-bold text-stone-800 mb-2 pointer-events-auto">AI Garden Editor</h2>
+          <p className="text-stone-600 pointer-events-auto">Upload a photo or use your design, then use text to make magic happen.</p>
         </div>
-        {/* Save Button positioned absolutely on desktop, static on mobile */}
-        <div className="absolute right-0 top-0 hidden md:block">
+        
+        {/* Save Button Group */}
+        <div className="md:ml-auto md:relative z-10 flex flex-col items-end gap-1">
            <button 
              onClick={handleSaveProject}
              disabled={!currentImage || saveStatus === 'saving'}
@@ -232,6 +219,12 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
              {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
              {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save Design'}
            </button>
+           {lastSaved && (
+             <div className="flex items-center gap-1 text-[10px] text-stone-400">
+               <Clock size={10} />
+               <span>Last saved: {new Date(lastSaved).toLocaleTimeString()}</span>
+             </div>
+           )}
         </div>
       </div>
 
@@ -270,24 +263,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
           historyLength={history.length}
           currentIndex={history.findIndex(h => h === currentImage)} 
         />
-      </div>
-      
-      {/* Mobile Save Button */}
-      <div className="md:hidden mt-6 flex justify-center">
-         <button 
-             onClick={handleSaveProject}
-             disabled={!currentImage || saveStatus === 'saving'}
-             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-md ${
-                saveStatus === 'saved' 
-                  ? 'bg-green-600 text-white' 
-                  : saveStatus === 'saving'
-                  ? 'bg-stone-100 text-stone-400 cursor-wait'
-                  : 'bg-stone-900 text-white hover:bg-stone-800'
-             }`}
-           >
-             {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
-             {saveStatus === 'saved' ? 'Design Saved!' : 'Save Design'}
-           </button>
       </div>
 
       {/* Camera Modal */}

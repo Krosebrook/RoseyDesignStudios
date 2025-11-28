@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { analyzeGardenImage, searchGardeningTips } from '../services/gemini';
 import { LoadingState } from '../types';
 import { Upload, ScanEye, Search, ArrowRight, ExternalLink, Leaf, Stethoscope } from 'lucide-react';
@@ -11,16 +12,23 @@ export const ImageAnalyzer: React.FC = () => {
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [question, setQuestion] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const isMounted = useRef(true);
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
-        setResult(null);
-        setGroundingResult(null);
-        setQuestion('');
+        if (isMounted.current) {
+            setImage(reader.result as string);
+            setResult(null);
+            setGroundingResult(null);
+            setQuestion('');
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -33,10 +41,14 @@ export const ImageAnalyzer: React.FC = () => {
 
     try {
       const text = await analyzeGardenImage(image, prompt);
-      setResult(text);
-      setLoading({ isLoading: false, operation: 'idle', message: '' });
+      if (isMounted.current) {
+          setResult(text);
+          setLoading({ isLoading: false, operation: 'idle', message: '' });
+      }
     } catch (err) {
-      setLoading({ isLoading: false, operation: 'idle', message: '', error: 'Analysis failed.' });
+      if (isMounted.current) {
+          setLoading({ isLoading: false, operation: 'idle', message: '', error: 'Analysis failed.' });
+      }
     }
   };
 
@@ -68,10 +80,14 @@ export const ImageAnalyzer: React.FC = () => {
           // Summarize the analysis into a search query
           const query = `Fact check and find more info about: ${result.slice(0, 300)}...`;
           const searchData = await searchGardeningTips(query);
-          setGroundingResult(searchData);
-          setLoading({ isLoading: false, operation: 'idle', message: '' });
+          if (isMounted.current) {
+              setGroundingResult(searchData);
+              setLoading({ isLoading: false, operation: 'idle', message: '' });
+          }
       } catch(err) {
-          setLoading({ isLoading: false, operation: 'idle', message: '', error: 'Search failed.' });
+          if (isMounted.current) {
+              setLoading({ isLoading: false, operation: 'idle', message: '', error: 'Search failed.' });
+          }
       }
   }
 

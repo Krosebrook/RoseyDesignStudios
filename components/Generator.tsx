@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { generateHighQualityImage } from '../services/gemini';
 import { LoadingState, GeneratedImage, AppMode, AspectRatio } from '../types';
 import { Wand2, Download, Edit3, Square, Smartphone, Monitor } from 'lucide-react';
 import { GENERATOR_LOADING_MESSAGES, GENERATOR_SUGGESTIONS } from '../data/constants';
+import { useLoadingCycle } from '../hooks/useLoadingCycle';
 
 interface GeneratorProps {
   onImageGenerated: (img: GeneratedImage) => void;
@@ -14,19 +16,14 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [result, setResult] = useState<GeneratedImage | null>(null);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('1:1');
-
+  
+  const isMounted = useRef(true);
   useEffect(() => {
-    if (loading.operation !== 'generating') return;
-    let messageIndex = 0;
-    const interval = setInterval(() => {
-      messageIndex = (messageIndex + 1) % GENERATOR_LOADING_MESSAGES.length;
-      setLoading(prev => {
-        if (!prev.isLoading) return prev;
-        return { ...prev, message: GENERATOR_LOADING_MESSAGES[messageIndex] };
-      });
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [loading.operation]);
+    return () => { isMounted.current = false; };
+  }, []);
+
+  // Use shared hook for message cycling
+  useLoadingCycle(loading, setLoading, GENERATOR_LOADING_MESSAGES, 'generating');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -36,22 +33,27 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
 
     try {
       const base64Data = await generateHighQualityImage(prompt, aspectRatio);
-      const newImage: GeneratedImage = {
-        id: crypto.randomUUID(),
-        dataUrl: base64Data,
-        prompt: prompt,
-        timestamp: Date.now()
-      };
-      setResult(newImage);
-      onImageGenerated(newImage);
-      setLoading({ isLoading: false, operation: 'idle', message: '' });
+      
+      if (isMounted.current) {
+          const newImage: GeneratedImage = {
+            id: crypto.randomUUID(),
+            dataUrl: base64Data,
+            prompt: prompt,
+            timestamp: Date.now()
+          };
+          setResult(newImage);
+          onImageGenerated(newImage);
+          setLoading({ isLoading: false, operation: 'idle', message: '' });
+      }
     } catch (err) {
-      setLoading({ 
-        isLoading: false, 
-        operation: 'idle',
-        message: '', 
-        error: 'Failed to generate image. Please try again.' 
-      });
+      if (isMounted.current) {
+          setLoading({ 
+            isLoading: false, 
+            operation: 'idle', 
+            message: '', 
+            error: 'Failed to generate image. Please try again.' 
+          });
+      }
     }
   };
 

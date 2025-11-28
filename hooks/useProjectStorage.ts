@@ -5,6 +5,7 @@ import { SavedDesign } from '../types';
 
 export const useProjectStorage = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [lastSaved, setLastSaved] = useState<number | null>(null);
 
   const saveProject = useCallback(async (currentImage: string | null, history: string[]) => {
     if (!currentImage) return;
@@ -22,15 +23,17 @@ export const useProjectStorage = () => {
         historyToSave.map(img => compressImage(img, 0.7, 1024))
       );
       
+      const timestamp = Date.now();
       const savedData: SavedDesign = {
         currentImage: compressedImage,
         history: compressedHistory,
-        timestamp: Date.now()
+        timestamp
       };
       
       localStorage.setItem('dreamGarden_saved', JSON.stringify(savedData));
       
       setSaveStatus('saved');
+      setLastSaved(timestamp);
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (e) {
       console.error("Failed to save project", e);
@@ -42,6 +45,7 @@ export const useProjectStorage = () => {
 
   return {
     saveProject,
-    saveStatus
+    saveStatus,
+    lastSaved
   };
 };

@@ -1,5 +1,5 @@
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { getAIClient } from '../services/gemini';
 import { LiveServerMessage, Modality } from '@google/genai';
 import { createBlob, decode, decodeAudioData } from '../utils/audio';
@@ -18,18 +18,28 @@ export const useVoiceAssistant = () => {
   const cleanup = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
     if (inputContextRef.current && inputContextRef.current.state !== 'closed') {
        inputContextRef.current.close();
+       inputContextRef.current = null;
     }
     if (outputContextRef.current && outputContextRef.current.state !== 'closed') {
        outputContextRef.current.close();
+       outputContextRef.current = null;
     }
     
     setIsActive(false);
     setStatus('Disconnected');
     setVolume(0);
   }, []);
+
+  // Ensure cleanup runs when component unmounts
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   const startSession = useCallback(async () => {
     try {
@@ -58,6 +68,8 @@ export const useVoiceAssistant = () => {
             const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
             
             scriptProcessor.onaudioprocess = (e) => {
+              if (!inputContextRef.current) return;
+
               const inputData = e.inputBuffer.getChannelData(0);
               
               // Calculate volume for visualizer
@@ -76,9 +88,9 @@ export const useVoiceAssistant = () => {
           onmessage: async (message: LiveServerMessage) => {
             const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
             
-            if (base64Audio) {
+            if (base64Audio && outputContextRef.current) {
                setStatus('Garden AI is speaking...');
-               const audioCtx = outputContextRef.current!;
+               const audioCtx = outputContextRef.current;
                
                // Ensure we don't schedule audio in the past
                nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioCtx.currentTime);

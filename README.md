@@ -1,51 +1,89 @@
 
 # DreamGarden AI
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Sprint Status](https://img.shields.io/badge/Sprint-Complete-green)
+![Status](https://img.shields.io/badge/Status-Production_Ready-green)
 
-**DreamGarden AI** is a comprehensive landscape design application powered by Google's Gemini ecosystem. It allows users to generate photorealistic garden designs, edit existing photos using natural language, animate static images into videos, and interact with an AI gardening assistant via voice.
+**DreamGarden AI** is a next-generation landscape design application powered by Google's Gemini ecosystem. It empowers users to visualize, edit, and animate their dream gardens using a suite of advanced generative AI models.
 
-## Latest Updates (Production Refactor)
-We have optimized the codebase for maintainability and separation of concerns:
-- **Custom Hooks:** `useVoiceAssistant`, `usePlantAI`, `useMarkers` handle complex logic.
-- **Utils:** Pure functions extracted for audio, image, and editor geometry.
-- **Component Split:** Monolithic components decomposed into cleaner, focused UI units.
+## 🚀 Key Features
 
-## Features
+### 🎨 Generative Design
+- **Imagen 4.0 Integration:** Create award-winning, photorealistic garden layouts from text.
+- **Aspect Ratio Control:** Switch seamlessly between Square (1:1), Portrait (9:16), and Landscape (16:9).
 
-### 🎨 Design & Generate
-- **Text-to-Image:** Generate stunning garden layouts using **Imagen 4.0**.
-- **Aspect Ratio Control:** Support for Square, Portrait, and Landscape formats.
+### ✏️ AI Magic Editor
+- **Conversational Editing:** Use **Gemini 2.5 Flash** to modify images (e.g., "Add a stone path", "Make it sunset").
+- **Drag & Drop Palette:** Intuitively drag plants and furniture directly onto your design canvas.
+- **3D Parallax View:** Toggle a simulated depth view to explore your 2D designs in 3D space.
+- **Smart History:** Non-destructive Undo/Redo allowing you to traverse your design evolution.
 
-### ✏️ AI Editor
-- **Natural Language Editing:** Use **Gemini 2.5 Flash** to add plants, change textures, or modify lighting.
-- **Drag & Drop:** Drag plants from the library directly onto your canvas.
-- **3D Perspective:** Toggle between 2D and a simulated 3D parallax view.
-- **In-Browser Camera:** Capture photos of your yard directly within the app.
+### 🎥 Cinematic Video (Veo)
+- **Image-to-Video:** Bring static designs to life with wind, lighting changes, and camera movement using **Veo 3.1**.
 
-### 🎥 Animation (Veo)
-- **Image-to-Video:** Transform static garden photos into cinematic videos using **Veo 3.1**.
-
-### 🧠 Analysis & Vision
-- **Plant Doctor:** Analyze photos using **Gemini 3 Pro** to identify plants and diagnose issues.
-- **Search Grounding:** Verify AI advice with real-time Google Search results.
+### 🧠 Vision & Analysis
+- **Plant Doctor:** Upload photos to identify plants and diagnose diseases using **Gemini 3 Pro**.
+- **Search Grounding:** AI advice is cross-referenced with Google Search for accuracy.
 
 ### 🗣️ Voice Assistant
-- **Live API:** Have a real-time, low-latency conversation with an expert gardening AI.
+- **Live API Integration:** Talk to your garden assistant in real-time for advice and ideas.
 
-## Setup
+## 🏗️ Technical Architecture
 
-1. Clone the repository.
-2. Install dependencies: `npm install`
-3. Set your API Key:
+This project uses a modular, hook-based architecture to ensure scalability and maintainability.
+
+### Directory Structure
+```
+/src
+  /components    # UI Components (Presentational)
+    /EditorSidebar.tsx  # Tools & Plant Palette
+    /EditorCanvas.tsx   # Interactive Design Area
+    /VoiceChat.tsx      # Visualizer & Controls
+  /hooks         # Business Logic & State
+    /useVoiceAssistant.ts # WebAudio & Live API (Memory Safe)
+    /usePlantAI.ts        # Image/Text Generation
+    /useImageHistory.ts   # Undo/Redo Logic
+    /useProjectStorage.ts # LocalStorage & Compression
+  /services      # API Layer
+    /gemini.ts   # Google GenAI SDK Implementation
+  /utils         # Pure Functions
+    /audio.ts    # PCM Encoding/Decoding
+    /image.ts    # Compression & Base64 handling
+```
+
+### Core Technologies
+- **Frontend:** React 19, TypeScript, Tailwind CSS
+- **AI Models:**
+  - `gemini-2.5-flash` (Text/Speed)
+  - `gemini-2.5-flash-image` (Editing)
+  - `imagen-4.0-generate-001` (Generation)
+  - `veo-3.1-fast-generate-preview` (Video)
+  - `gemini-3-pro-preview` (Vision/Reasoning)
+  - `gemini-2.5-flash-native-audio` (Live Voice)
+
+## 🛠️ Setup & Development
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/dreamgarden-ai.git
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment:**
+   Set your Google GenAI API key in your environment variables.
    ```bash
    export API_KEY="your_google_genai_api_key"
    ```
-4. Run the development server: `npm start`
 
-## Tech Stack
-- **Frontend:** React 19, TypeScript, Tailwind CSS
-- **AI:** @google/genai SDK (Gemini 2.5, 3.0, Veo, Imagen)
-- **Audio:** Web Audio API for PCM streaming
+4. **Run Locally:**
+   ```bash
+   npm start
+   ```
+
+## 📄 License
+MIT

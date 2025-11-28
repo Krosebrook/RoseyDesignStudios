@@ -117,7 +117,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
                onClick={onEnhance}
                disabled={isEnhancing}
                className="text-[10px] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-medium transition-colors border border-indigo-100"
-               title="Use Gemini AI to analyze this plant and generate a rich, detailed description focusing on aesthetics and garden use."
+               title="Use Gemini AI to expand this description with aesthetic details and gardening tips."
              >
                {isEnhancing ? <span className="animate-spin">⏳</span> : <Sparkles size={10} />}
                {isEnhancing ? 'Writing...' : 'Enhance Description'}
@@ -128,7 +128,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
              <button 
                onClick={() => setShowGenOptions(!showGenOptions)}
                className={`text-[10px] flex items-center gap-1 px-2 py-1 rounded-md font-medium transition-colors border ${showGenOptions ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'}`}
-               title="Open advanced settings to choose specific artistic styles and lighting for the image generation."
+               title="Open settings to choose artistic style and lighting for image generation."
              >
                 <Settings2 size={10} />
                 {showGenOptions ? 'Hide Options' : 'Customize Image'}
@@ -171,7 +171,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
                onClick={handleGenerateClick}
                disabled={isGeneratingImage}
                className="w-full text-xs flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md font-bold transition-colors shadow-sm disabled:opacity-50"
-               title="Generate a new high-resolution image using the selected artistic style and lighting."
+               title="Generate a new image with your selected style and lighting."
              >
                 {isGeneratingImage ? <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" /> : <ImagePlus size={12} />}
                 {isGeneratingImage ? 'Generating...' : 'Generate Variation'}
@@ -186,7 +186,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
                   onClick={() => onGenerateImage()}
                   disabled={isGeneratingImage}
                   className="text-[10px] flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium transition-colors border border-amber-100"
-                  title="Instantly generate a new unique image variation using randomized settings."
+                  title="Generate a surprise variation with randomized settings."
                 >
                     {isGeneratingImage ? <span className="animate-spin">⏳</span> : <ImagePlus size={10} />}
                     {isGeneratingImage ? 'Generating...' : 'New Image (Random)'}

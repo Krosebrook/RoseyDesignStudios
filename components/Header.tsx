@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AppMode } from '../types';
 import { Sprout, ImagePlus, Wand2, BookOpen, Video, ScanEye, Mic } from 'lucide-react';
@@ -23,6 +24,9 @@ export const Header: React.FC<HeaderProps> = ({ currentMode, setMode }) => {
         <div 
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => setMode(AppMode.HOME)}
+          role="button"
+          aria-label="Go to Home"
+          tabIndex={0}
         >
           <div className="bg-primary-500 p-1.5 rounded-lg text-white">
             <Sprout size={24} />
@@ -30,18 +34,20 @@ export const Header: React.FC<HeaderProps> = ({ currentMode, setMode }) => {
           <h1 className="text-xl font-bold text-stone-800 tracking-tight hidden sm:block">DreamGarden</h1>
         </div>
 
-        <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+        <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar" role="navigation" aria-label="Main Navigation">
           {navItems.map(item => (
             <button
               key={item.label}
               onClick={() => setMode(item.mode)}
+              aria-label={`Switch to ${item.label}`}
+              aria-current={currentMode === item.mode ? 'page' : undefined}
               className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                 currentMode === item.mode
                   ? 'bg-stone-900 text-white shadow-md'
                   : 'text-stone-600 hover:bg-stone-100'
               }`}
             >
-              <item.icon size={16} />
+              <item.icon size={16} aria-hidden="true" />
               <span className="hidden md:inline">{item.label}</span>
             </button>
           ))}

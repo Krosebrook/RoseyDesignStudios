@@ -215,7 +215,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
                onClick={(e) => onCustomize(e, plant)}
                disabled={isGenerating}
                className="bg-white/90 hover:bg-white text-stone-600 hover:text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 border border-stone-200"
-               title="Configure artistic style and lighting options before generating a new image."
+               title="Customize artistic style and lighting settings for image generation."
              >
                <Settings2 size={16} />
              </button>
@@ -226,7 +226,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
              onClick={(e) => onGenerateAI(e, plant)}
              disabled={isGenerating}
              className="bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 border border-primary-100"
-             title="Instantly generate a new unique image variation using randomized settings."
+             title="Instantly generate a new, unique image variation of this plant using AI."
            >
              {isGenerating ? (
                  <div className="animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full" />
@@ -270,7 +270,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
               onClick={(e) => onEnhanceDescription(e, plant)}
               disabled={isEnhancingDescription}
               className="mt-1 text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline transition-all"
-              title="Use Gemini AI to analyze this plant and generate a rich, detailed description focusing on aesthetics and garden use."
+              title="Use Gemini AI to expand this description with aesthetic details and gardening tips."
             >
               {isEnhancingDescription ? <span className="animate-spin">⏳</span> : <Sparkles size={10} />}
               {isEnhancingDescription ? 'Writing...' : 'Enhance with AI'}
