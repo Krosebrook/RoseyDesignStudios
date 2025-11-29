@@ -1,12 +1,12 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { editGardenImage } from '../services/gemini';
-import { LoadingState, GeneratedImage } from '../types';
+import { LoadingState } from '../types';
 import { PLANTS } from '../data/plants';
 import { useImageHistory } from '../hooks/useImageHistory';
 import { useMarkers } from '../hooks/useMarkers';
 import { useProjectStorage } from '../hooks/useProjectStorage';
 import { useLoadingCycle } from '../hooks/useLoadingCycle';
+import { useApp } from '../contexts/AppContext';
 import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
 import { Save, Check, Clock } from 'lucide-react';
@@ -14,14 +14,10 @@ import { CameraModal } from './CameraModal';
 import { EDIT_LOADING_MESSAGES } from '../data/constants';
 import { getPositionDescription } from '../utils/editor';
 
-interface EditorProps {
-  initialImage: GeneratedImage | null;
-  initialHistory?: string[];
-  pendingInstruction?: string | null;
-  onClearInstruction?: () => void;
-}
+export const Editor: React.FC = () => {
+  // Use Global Context
+  const { currentImage: initialImage, currentHistory: initialHistory, pendingInstruction, setPendingInstruction } = useApp();
 
-export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pendingInstruction, onClearInstruction }) => {
   const { 
     currentImage, 
     setCurrentImage, 
@@ -34,7 +30,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     canRedo
   } = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
 
-  // Custom Hooks
   const { markers, addMarker, removeMarkerById, clearMarkers } = useMarkers();
   const { saveProject, saveStatus, lastSaved } = useProjectStorage();
 
@@ -42,17 +37,15 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [showCamera, setShowCamera] = useState(false);
   
-  // Use shared loading cycle logic
   useLoadingCycle(loading, setLoading, EDIT_LOADING_MESSAGES, 'editing');
   
-  // UI State
   const [activeTab, setActiveTab] = useState<'tools' | 'plants'>('tools');
   const [plantSearch, setPlantSearch] = useState('');
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset state when a NEW initial image is provided (based on ID change)
+  // Initialize/Reset when global context image changes
   useEffect(() => {
     if (initialImage) {
       if (initialHistory && initialHistory.length > 0) {
@@ -65,7 +58,7 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     }
   }, [initialImage?.id, resetHistory, initialHistory, clearMarkers]);
 
-  // Helper to append instruction to prompt
+  // Handle pending instructions from other parts of the app
   const updatePromptWithInstruction = (instruction: string) => {
     setEditPrompt(prev => {
       const cleanPrev = prev.trim();
@@ -76,13 +69,12 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
     setActiveTab('tools');
   };
 
-  // Handle pending instructions from other parts of the app
   useEffect(() => {
     if (pendingInstruction) {
       updatePromptWithInstruction(pendingInstruction);
-      onClearInstruction?.();
+      setPendingInstruction(null); // Clear globally after consuming
     }
-  }, [pendingInstruction, onClearInstruction]);
+  }, [pendingInstruction, setPendingInstruction]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,8 +84,8 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
       reader.onloadend = () => {
         const result = reader.result as string;
         setCurrentImage(result);
-        resetHistory(result); // Reset history on new upload
-        clearMarkers(); // Clear previous markers
+        resetHistory(result); 
+        clearMarkers();
         setLoading({ isLoading: false, operation: 'idle', message: '' });
       };
       reader.readAsDataURL(file);
@@ -116,7 +108,7 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
       const newImageData = await editGardenImage(currentImage, editPrompt);
       pushToHistory(newImageData);
       setEditPrompt(''); 
-      clearMarkers(); // Clear markers as they are now "baked in"
+      clearMarkers();
       setLoading({ isLoading: false, operation: 'idle', message: '' });
     } catch (err) {
       setLoading({ 
@@ -164,7 +156,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       
-      // Calculate percentages for responsive positioning
       const xPercent = (x / rect.width) * 100;
       const yPercent = (y / rect.height) * 100;
 
@@ -172,8 +163,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
       const instruction = `Add ${plantName} ${location}`;
       
       updatePromptWithInstruction(instruction);
-      
-      // Add visual marker via hook
       addMarker(plantName, xPercent, yPercent, instruction);
     }
   };
@@ -181,7 +170,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
   const handleRemoveMarker = (markerId: string) => {
     const removedMarker = removeMarkerById(markerId);
     if (removedMarker) {
-      // Attempt to remove the instruction text
       setEditPrompt(prev => {
         let newPrompt = prev.replace(removedMarker.instruction, '');
         newPrompt = newPrompt.replace(/\.\s*\./g, '.').replace(/\s\s+/g, ' ').trim();
@@ -203,7 +191,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
           <p className="text-stone-600 pointer-events-auto">Upload a photo or use your design, then use text to make magic happen.</p>
         </div>
         
-        {/* Save Button Group */}
         <div className="md:ml-auto md:relative z-10 flex flex-col items-end gap-1">
            <button 
              onClick={handleSaveProject}
@@ -265,7 +252,6 @@ export const Editor: React.FC<EditorProps> = ({ initialImage, initialHistory, pe
         />
       </div>
 
-      {/* Camera Modal */}
       {showCamera && (
           <CameraModal 
             onCapture={handleCameraCapture} 

@@ -1,14 +1,11 @@
-
 import React from 'react';
 import { AppMode } from '../types';
 import { Sprout, ImagePlus, Wand2, BookOpen, Video, ScanEye, Mic } from 'lucide-react';
+import { useApp } from '../contexts/AppContext';
 
-interface HeaderProps {
-  currentMode: AppMode;
-  setMode: (mode: AppMode) => void;
-}
+export const Header: React.FC = () => {
+  const { mode: currentMode, setMode } = useApp();
 
-export const Header: React.FC<HeaderProps> = ({ currentMode, setMode }) => {
   const navItems = [
     { mode: AppMode.GENERATE, icon: Wand2, label: 'Design' },
     { mode: AppMode.EDIT, icon: ImagePlus, label: 'Edit' },

@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { AppMode, SavedDesign } from '../types';
 import { ArrowRight, Wand2, Upload, BookOpen, History } from 'lucide-react';
+import { useApp } from '../contexts/AppContext';
 
-interface HeroProps {
-  setMode: (mode: AppMode) => void;
-  onResumeDesign?: (design: SavedDesign) => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ setMode, onResumeDesign }) => {
+export const Hero: React.FC = () => {
+  const { setMode, handleResumeDesign } = useApp();
   const [savedDesign, setSavedDesign] = useState<SavedDesign | null>(null);
 
   useEffect(() => {
@@ -25,8 +22,8 @@ export const Hero: React.FC<HeroProps> = ({ setMode, onResumeDesign }) => {
   }, []);
 
   const handleResume = () => {
-    if (savedDesign && onResumeDesign) {
-      onResumeDesign(savedDesign);
+    if (savedDesign) {
+      handleResumeDesign(savedDesign);
     }
   };
 

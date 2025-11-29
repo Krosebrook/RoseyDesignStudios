@@ -1,28 +1,23 @@
-
 import React, { useState } from 'react';
 import { Plant } from '../types';
 import { usePlantFiltering } from '../hooks/usePlantFiltering';
 import { usePlantAI } from '../hooks/usePlantAI';
+import { useApp } from '../contexts/AppContext';
 import { PlantCard } from './PlantCard';
 import { PlantFilters } from './PlantFilters';
 import { PlantDetailPopover } from './PlantDetailPopover';
 import { SeasonalSpotlight } from './SeasonalSpotlight';
 import { Search } from 'lucide-react';
 
-interface PlantLibraryProps {
-  onAddToDesign?: (plantName: string) => void;
-}
-
-export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => {
+export const PlantLibrary: React.FC = () => {
+  const { handleAddToDesign } = useApp();
   const filters = usePlantFiltering();
   const { filteredPlants, clearFilters } = filters;
   const [showFilters, setShowFilters] = useState(false);
   
-  // "active" takes precedence over "hover". Active means user clicked Customize/Settings.
   const [hoveredPlantData, setHoveredPlantData] = useState<{ plant: Plant; rect: DOMRect } | null>(null);
   const [activePopover, setActivePopover] = useState<{ plant: Plant; rect: DOMRect; showOptions: boolean } | null>(null);
 
-  // Use the new custom hook for AI operations
   const { 
     generatedImages, 
     generatingIds, 
@@ -58,13 +53,11 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
     e.stopPropagation();
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
-    // Set active popover to lock it open and show options
     setActivePopover({ plant, rect, showOptions: true });
-    setHoveredPlantData(null); // Clear hover so they don't conflict
+    setHoveredPlantData(null);
   };
 
   const handleMouseEnter = (e: React.MouseEvent, plant: Plant) => {
-    // Only show hover if we don't have an active locked popover
     if (!activePopover) {
         const rect = e.currentTarget.getBoundingClientRect();
         setHoveredPlantData({ plant, rect });
@@ -75,7 +68,6 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
     setHoveredPlantData(null);
   };
 
-  // Determine which plant data to use for the popover
   const popoverData = activePopover || (hoveredPlantData ? { ...hoveredPlantData, showOptions: false } : null);
 
   return (
@@ -85,9 +77,8 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
         <p className="text-stone-600">Explore our curated collection of garden favorites.</p>
       </div>
 
-      {/* Seasonal Spotlight Section */}
       <SeasonalSpotlight 
-        onAddToDesign={onAddToDesign}
+        onAddToDesign={handleAddToDesign}
         generatedImages={generatedImages}
         generatingIds={generatingIds}
         onGenerateAI={handleGenerateAIImage}
@@ -99,7 +90,6 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
         toggleFilters={() => setShowFilters(!showFilters)} 
       />
 
-      {/* Results Grid */}
       {filteredPlants.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredPlants.map(plant => (
@@ -114,7 +104,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
                 images={[plant.imageUrl, ...(generatedImages[plant.id] || [])]}
                 isGenerating={generatingIds.has(plant.id)}
                 onGenerateAI={handleGenerateAIImage}
-                onAddToDesign={onAddToDesign}
+                onAddToDesign={handleAddToDesign}
                 isDraggable={true}
                 onDragStart={(e, name) => {
                     e.dataTransfer.setData('plantName', name);
@@ -144,7 +134,6 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
         </div>
       )}
 
-      {/* Detail Popover */}
       {popoverData && (
         <PlantDetailPopover 
           plant={popoverData.plant} 
@@ -154,7 +143,7 @@ export const PlantLibrary: React.FC<PlantLibraryProps> = ({ onAddToDesign }) => 
           onEnhance={() => handleEnhanceDescription(undefined, popoverData.plant)}
           isGeneratingImage={generatingIds.has(popoverData.plant.id)}
           onGenerateImage={(style, lighting) => handleGenerateAIImage(undefined, popoverData.plant, style, lighting)}
-          onAddToDesign={onAddToDesign}
+          onAddToDesign={handleAddToDesign}
           defaultShowOptions={popoverData.showOptions}
           onClose={activePopover ? () => setActivePopover(null) : undefined}
         />

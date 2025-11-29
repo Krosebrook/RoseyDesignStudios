@@ -1,17 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { generateHighQualityImage } from '../services/gemini';
 import { LoadingState, GeneratedImage, AppMode, AspectRatio } from '../types';
 import { Wand2, Download, Edit3, Square, Smartphone, Monitor } from 'lucide-react';
 import { GENERATOR_LOADING_MESSAGES, GENERATOR_SUGGESTIONS } from '../data/constants';
 import { useLoadingCycle } from '../hooks/useLoadingCycle';
+import { useApp } from '../contexts/AppContext';
 
-interface GeneratorProps {
-  onImageGenerated: (img: GeneratedImage) => void;
-  setMode: (mode: AppMode) => void;
-}
-
-export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode }) => {
+export const Generator: React.FC = () => {
+  const { handleImageGenerated, setMode } = useApp();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [result, setResult] = useState<GeneratedImage | null>(null);
@@ -22,7 +18,6 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
     return () => { isMounted.current = false; };
   }, []);
 
-  // Use shared hook for message cycling
   useLoadingCycle(loading, setLoading, GENERATOR_LOADING_MESSAGES, 'generating');
 
   const handleGenerate = async () => {
@@ -42,7 +37,7 @@ export const Generator: React.FC<GeneratorProps> = ({ onImageGenerated, setMode 
             timestamp: Date.now()
           };
           setResult(newImage);
-          onImageGenerated(newImage);
+          handleImageGenerated(newImage);
           setLoading({ isLoading: false, operation: 'idle', message: '' });
       }
     } catch (err) {
