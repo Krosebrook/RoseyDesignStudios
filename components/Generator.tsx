@@ -27,12 +27,16 @@ export const Generator: React.FC = () => {
     setResult(null);
 
     try {
-      const base64Data = await generateHighQualityImage(prompt, aspectRatio);
+      const response = await generateHighQualityImage(prompt, aspectRatio);
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.message || 'Failed to generate image');
+      }
       
       if (isMounted.current) {
           const newImage: GeneratedImage = {
             id: crypto.randomUUID(),
-            dataUrl: base64Data,
+            dataUrl: response.data,
             prompt: prompt,
             timestamp: Date.now()
           };
@@ -40,13 +44,13 @@ export const Generator: React.FC = () => {
           handleImageGenerated(newImage);
           setLoading({ isLoading: false, operation: 'idle', message: '' });
       }
-    } catch (err) {
+    } catch (err: any) {
       if (isMounted.current) {
           setLoading({ 
             isLoading: false, 
             operation: 'idle', 
             message: '', 
-            error: 'Failed to generate image. Please try again.' 
+            error: err.message || 'Failed to generate image. Please try again.' 
           });
       }
     }

@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { editGardenImage } from '../services/gemini';
 import { LoadingState } from '../types';
 import { PLANTS } from '../data/plants';
@@ -9,7 +10,7 @@ import { useLoadingCycle } from '../hooks/useLoadingCycle';
 import { useApp } from '../contexts/AppContext';
 import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
-import { Save, Check, Clock } from 'lucide-react';
+import { Save, Check, Clock, AlertCircle } from 'lucide-react';
 import { CameraModal } from './CameraModal';
 import { EDIT_LOADING_MESSAGES } from '../data/constants';
 import { getPositionDescription } from '../utils/editor';
@@ -31,7 +32,7 @@ export const Editor: React.FC = () => {
   } = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
 
   const { markers, addMarker, removeMarkerById, clearMarkers } = useMarkers();
-  const { saveProject, saveStatus, lastSaved } = useProjectStorage();
+  const { saveProject, saveStatus, lastSaved, error: saveError } = useProjectStorage();
 
   const [editPrompt, setEditPrompt] = useState('');
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
@@ -44,6 +45,46 @@ export const Editor: React.FC = () => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Wrappers for Undo/Redo to handle side effects (clearing markers)
+  const handleUndo = useCallback(() => {
+    if (canUndo) {
+      undo();
+      clearMarkers();
+    }
+  }, [canUndo, undo, clearMarkers]);
+
+  const handleRedo = useCallback(() => {
+    if (canRedo) {
+      redo();
+      clearMarkers();
+    }
+  }, [canRedo, redo, clearMarkers]);
+
+  // Keyboard shortcuts for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input or textarea
+      if (e.target instanceof HTMLElement && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   // Initialize/Reset when global context image changes
   useEffect(() => {
@@ -206,7 +247,15 @@ export const Editor: React.FC = () => {
              {saveStatus === 'saved' ? <Check size={18} /> : saveStatus === 'saving' ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/> : <Save size={18} />}
              {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save Design'}
            </button>
-           {lastSaved && (
+           
+           {saveError && (
+             <div className="flex items-center gap-1 text-[10px] text-red-500 font-medium">
+                <AlertCircle size={10} />
+                <span>{saveError}</span>
+             </div>
+           )}
+           
+           {!saveError && lastSaved && (
              <div className="flex items-center gap-1 text-[10px] text-stone-400">
                <Clock size={10} />
                <span>Last saved: {new Date(lastSaved).toLocaleTimeString()}</span>
@@ -243,8 +292,8 @@ export const Editor: React.FC = () => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onRemoveMarker={handleRemoveMarker}
-          onUndo={undo}
-          onRedo={redo}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
           canUndo={canUndo}
           canRedo={canRedo}
           historyLength={history.length}

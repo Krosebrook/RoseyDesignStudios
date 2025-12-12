@@ -1,7 +1,7 @@
 
 # DreamGarden AI
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.4.0-blue)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-green)
 
@@ -31,25 +31,22 @@
 
 ## 🏗️ Technical Architecture
 
-This project uses a modular, hook-based architecture to ensure scalability and maintainability.
+This project uses a modular, domain-driven architecture.
 
 ### Directory Structure
 ```
 /src
   /components    # UI Components (Presentational)
-    /EditorSidebar.tsx  # Tools & Plant Palette
-    /EditorCanvas.tsx   # Interactive Design Area
-    /VoiceChat.tsx      # Visualizer & Controls
-  /hooks         # Business Logic & State
-    /useVoiceAssistant.ts # WebAudio & Live API (Memory Safe)
-    /usePlantAI.ts        # Image/Text Generation
-    /useImageHistory.ts   # Undo/Redo Logic
-    /useProjectStorage.ts # LocalStorage & Compression
   /services      # API Layer
-    /gemini.ts   # Google GenAI SDK Implementation
-  /utils         # Pure Functions
-    /audio.ts    # PCM Encoding/Decoding
-    /image.ts    # Compression & Base64 handling
+    /ai          # Modular AI Logic
+      /imaging.ts  # Image Gen/Edit (Imagen, Flash Image)
+      /video.ts    # Video Gen (Veo)
+      /analysis.ts # Vision & Search
+      /advisory.ts # Text/Reasoning
+      /config.ts   # Client & Auth
+    /gemini.ts   # Facade Service (Aggregator)
+  /hooks         # Business Logic & State
+  /utils         # Pure Functions (Logger, Retry, Errors)
 ```
 
 ### Core Technologies
@@ -61,6 +58,11 @@ This project uses a modular, hook-based architecture to ensure scalability and m
   - `veo-3.1-fast-generate-preview` (Video)
   - `gemini-3-pro-preview` (Vision/Reasoning)
   - `gemini-2.5-flash-native-audio` (Live Voice)
+
+### Observability & Resilience
+- **Structured Logging:** All services use `utils/logger.ts`.
+- **Automatic Retries:** AI calls use exponential backoff (`utils/retry.ts`).
+- **Concurrency Control:** Plant generation uses a queue to prevent rate limiting.
 
 ## 🛠️ Setup & Development
 

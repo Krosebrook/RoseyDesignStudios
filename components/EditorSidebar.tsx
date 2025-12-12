@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus, PenTool, Eraser } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus, PenTool, Eraser, X } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { PlantCard } from './PlantCard';
 
@@ -42,6 +42,13 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   const [showCustomItem, setShowCustomItem] = useState(false);
   const [customItemName, setCustomItemName] = useState('');
   const [customItemDetails, setCustomItemDetails] = useState('');
+  const customNameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showCustomItem && customNameInputRef.current) {
+        customNameInputRef.current.focus();
+    }
+  }, [showCustomItem]);
 
   const handleAddCustomItem = () => {
     if (customItemName.trim()) {
@@ -53,6 +60,12 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         setCustomItemDetails('');
         setShowCustomItem(false);
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+          handleAddCustomItem();
+      }
   };
 
   return (
@@ -181,9 +194,13 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
               <div className="flex gap-2">
                 <button 
                   onClick={() => setShowCustomItem(!showCustomItem)}
-                  className="flex-1 py-2 px-3 bg-stone-50 hover:bg-stone-100 text-stone-600 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border border-stone-200 transition-colors"
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border transition-colors ${
+                      showCustomItem 
+                        ? 'bg-primary-50 text-primary-700 border-primary-200' 
+                        : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200'
+                  }`}
                 >
-                  {showCustomItem ? <Plus size={14} className="rotate-45" /> : <PenTool size={14} />}
+                  {showCustomItem ? <X size={14} /> : <PenTool size={14} />}
                   {showCustomItem ? 'Cancel' : 'Custom Item'}
                 </button>
 
@@ -199,28 +216,36 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
 
               {/* Custom Item Form */}
               {showCustomItem && (
-                <div className="mt-3 p-3 bg-stone-50 rounded-lg border border-stone-200 animate-fade-in">
-                    <input 
-                        type="text"
-                        placeholder="Item Name (e.g. Garden Gnome)"
-                        value={customItemName}
-                        onChange={(e) => setCustomItemName(e.target.value)}
-                        className="w-full p-2 mb-2 rounded border border-stone-300 text-xs"
-                    />
-                    <input 
-                        type="text"
-                        placeholder="Details (e.g. Red hat, ceramic)"
-                        value={customItemDetails}
-                        onChange={(e) => setCustomItemDetails(e.target.value)}
-                        className="w-full p-2 mb-2 rounded border border-stone-300 text-xs"
-                    />
-                    <button 
-                        onClick={handleAddCustomItem}
-                        disabled={!customItemName.trim()}
-                        className="w-full bg-primary-600 text-white py-1.5 rounded text-xs font-bold disabled:opacity-50"
-                    >
-                        Add to Design Prompt
-                    </button>
+                <div className="mt-3 p-4 bg-primary-50/50 rounded-xl border border-primary-100 animate-fade-in relative">
+                    <div className="absolute top-0 left-4 -translate-y-1/2 bg-white px-2 text-[10px] font-bold text-primary-600 uppercase tracking-wider">
+                        Add Unique Object
+                    </div>
+                    <div className="space-y-2 mt-1">
+                        <input 
+                            ref={customNameInputRef}
+                            type="text"
+                            placeholder="Item Name (e.g. Garden Gnome)"
+                            value={customItemName}
+                            onChange={(e) => setCustomItemName(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="w-full p-2 rounded-lg border border-stone-200 text-xs focus:border-primary-500 outline-none"
+                        />
+                        <input 
+                            type="text"
+                            placeholder="Details (e.g. Red hat, ceramic)"
+                            value={customItemDetails}
+                            onChange={(e) => setCustomItemDetails(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="w-full p-2 rounded-lg border border-stone-200 text-xs focus:border-primary-500 outline-none"
+                        />
+                        <button 
+                            onClick={handleAddCustomItem}
+                            disabled={!customItemName.trim()}
+                            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg text-xs font-bold disabled:opacity-50 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                        >
+                            <Plus size={14} /> Add to Design Prompt
+                        </button>
+                    </div>
                 </div>
               )}
             </div>

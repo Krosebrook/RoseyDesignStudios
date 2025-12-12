@@ -6,15 +6,16 @@ import { SavedDesign } from '../types';
 export const useProjectStorage = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [lastSaved, setLastSaved] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const saveProject = useCallback(async (currentImage: string | null, history: string[]) => {
     if (!currentImage) return;
     
     setSaveStatus('saving');
+    setError(null);
     
     try {
       // Compress the current image to ensure it fits in LocalStorage
-      // We compress specifically for saving state; the user still sees the high res one until they reload
       const compressedImage = await compressImage(currentImage, 0.7, 1024);
       
       // Compress history images (limit to last 5 to be safe with storage limits)
@@ -30,15 +31,20 @@ export const useProjectStorage = () => {
         timestamp
       };
       
-      localStorage.setItem('dreamGarden_saved', JSON.stringify(savedData));
-      
-      setSaveStatus('saved');
-      setLastSaved(timestamp);
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (e) {
+      try {
+        localStorage.setItem('dreamGarden_saved', JSON.stringify(savedData));
+        setSaveStatus('saved');
+        setLastSaved(timestamp);
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (storageErr: any) {
+        if (storageErr.name === 'QuotaExceededError' || storageErr.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+           throw new Error("Storage full. Try clearing space.");
+        }
+        throw storageErr;
+      }
+    } catch (e: any) {
       console.error("Failed to save project", e);
-      // In a real app, we might check if error is QuotaExceededError
-      alert("Could not save project. Browser storage is full.");
+      setError(e.message || "Failed to save");
       setSaveStatus('idle');
     }
   }, []);
@@ -46,6 +52,7 @@ export const useProjectStorage = () => {
   return {
     saveProject,
     saveStatus,
-    lastSaved
+    lastSaved,
+    error
   };
 };

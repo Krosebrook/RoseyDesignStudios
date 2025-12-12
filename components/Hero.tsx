@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { AppMode, SavedDesign } from '../types';
-import { ArrowRight, Wand2, Upload, BookOpen, History } from 'lucide-react';
+import { ArrowRight, Wand2, Upload, BookOpen, History, PlayCircle } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 export const Hero: React.FC = () => {
@@ -46,19 +47,31 @@ export const Hero: React.FC = () => {
         <div className="w-full max-w-2xl mb-8 animate-fade-in">
            <button 
              onClick={handleResume}
-             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-4 rounded-xl shadow-lg flex items-center justify-between group transition-all"
+             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-2 rounded-2xl shadow-xl flex items-center justify-between group transition-all border border-stone-700 hover:border-stone-500 overflow-hidden"
            >
-              <div className="flex items-center gap-4">
-                 <div className="bg-stone-700 p-2 rounded-lg">
-                    <History size={24} className="text-stone-300" />
+              <div className="flex items-center gap-4 flex-1">
+                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-stone-800 flex-shrink-0 border border-white/10">
+                    <img 
+                      src={savedDesign.currentImage} 
+                      alt="Last design" 
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                         <History size={20} className="text-white drop-shadow-md" />
+                    </div>
                  </div>
-                 <div className="text-left">
-                    <p className="font-bold">Resume Previous Design</p>
-                    <p className="text-xs text-stone-400">Last saved {new Date(savedDesign.timestamp).toLocaleDateString()} {new Date(savedDesign.timestamp).toLocaleTimeString()}</p>
+                 <div className="text-left py-2">
+                    <p className="font-bold text-lg flex items-center gap-2">
+                        Resume Previous Design
+                        <span className="bg-primary-600 text-xs px-2 py-0.5 rounded-full">Autosave</span>
+                    </p>
+                    <p className="text-xs text-stone-400 mt-1">
+                        Last edited {new Date(savedDesign.timestamp).toLocaleDateString()} at {new Date(savedDesign.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </p>
                  </div>
               </div>
-              <div className="bg-white/10 p-2 rounded-full group-hover:bg-white/20 transition-colors">
-                 <ArrowRight size={20} />
+              <div className="mr-4 bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors group-hover:scale-110">
+                 <PlayCircle size={24} className="text-primary-400" />
               </div>
            </button>
         </div>
