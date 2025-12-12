@@ -1,18 +1,18 @@
 
 /**
  * GEMINI SERVICE FACADE
- * This file aggregates the modular AI services into a unified API surface
- * to maintain compatibility with existing components.
+ * This file aggregates the modular AI services into a unified API surface.
  */
 
 import { Result, AspectRatio, Plant } from "../types";
 import { AppError } from "../utils/errors";
-import { GENERATION_STYLES, buildPlantDescriptionPrompt } from "../data/constants";
+import { PromptService } from "./prompts";
 import { getAI } from "./ai/config";
 import * as ImagingService from "./ai/imaging";
 import * as VideoService from "./ai/video";
 import * as AnalysisService from "./ai/analysis";
 import * as AdvisoryService from "./ai/advisory";
+import { GENERATION_STYLES } from "../data/constants";
 
 // Re-export core client for hooks that need it directly (e.g. Live API)
 export const getAIClient = getAI;
@@ -69,35 +69,16 @@ export const generatePlantImage = async (
       plant.seasons
     );
 
-    // 2. Prompt Construction
+    // 2. Prompt Construction via PromptService
     const baseStyle = style || GENERATION_STYLES[Math.floor(Math.random() * GENERATION_STYLES.length)];
     const variationSeed = Math.floor(Math.random() * 999999999);
     
-    // Enrich context string
-    const envDetails = [
-      plant.sunlight ? `Sunlight: ${plant.sunlight}` : '',
-      plant.seasons ? `Active Seasons: ${plant.seasons.join(', ')}` : '',
-      plant.styles ? `Garden Styles: ${plant.styles.join(', ')}` : ''
-    ].filter(Boolean).join('. ');
-
-    const finalPrompt = `
-      Create a distinctly unique high-resolution image of ${plant.name} (${plant.scientificName}).
-      Context: ${plant.description}
-      Environment Details: ${envDetails}
-      
-      CREATIVE DIRECTION (Strictly Follow):
-      - Perspective: ${plan.angle}
-      - Lighting: ${plan.lighting}
-      - Artistic Style: ${baseStyle} mixed with ${plan.styleModifier}
-      - Composition Reasoning: ${plan.reasoning}
-      
-      REQUIREMENTS:
-      - Focus purely on the plant aesthetics in its natural or designed setting.
-      - High detail, 8k resolution.
-      - Make it look distinctively different from standard stock photos.
-      - Use the random seed to vary composition, zoom level, and background blur.
-      - Random Noise Seed: ${variationSeed}
-    `;
+    const finalPrompt = PromptService.buildPlantGenerationPrompt(plant, {
+      style: `${baseStyle} mixed with ${plan.styleModifier}`,
+      angle: plan.angle,
+      lighting: plan.lighting,
+      seed: variationSeed
+    });
 
     return ImagingService.generatePlantImage(finalPrompt);
   }, "Failed to generate plant image");
@@ -105,7 +86,7 @@ export const generatePlantImage = async (
 
 export const generatePlantDescription = async (plantName: string, currentDescription: string): Promise<Result<string>> => {
   return safeExecute(async () => {
-    const prompt = buildPlantDescriptionPrompt(plantName, currentDescription);
+    const prompt = PromptService.buildDescriptionEnhancementPrompt(plantName, currentDescription);
     return AdvisoryService.generatePlantDescription(prompt, currentDescription);
   }, "Failed to enhance description");
 };

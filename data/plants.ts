@@ -189,5 +189,59 @@ export const PLANTS: Plant[] = [
     imageUrl: 'https://images.unsplash.com/photo-1596115630706-2249490c9551?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
     styles: ['Cottage']
+  },
+  {
+    id: 'f5',
+    name: 'Modern Patio Set',
+    scientificName: 'Aluminum & Teak',
+    description: 'A sleek, minimalist dining arrangement perfect for outdoor entertaining. Features weather-resistant materials and clean lines suitable for contemporary landscapes.',
+    imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Modern', 'Formal', 'Zen']
+  },
+  {
+    id: 'f6',
+    name: 'Rustic Bench',
+    scientificName: 'Raw Timber',
+    description: 'A charming, rough-hewn wooden bench that invites quiet reflection. Blends organically into woodland paths and cottage garden corners.',
+    imageUrl: 'https://images.unsplash.com/photo-1555652614-72266850a79d?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Woodland', 'Cottage', 'Xeriscape']
+  },
+  {
+    id: 'f7',
+    name: 'Potting Shed',
+    scientificName: 'Cedar Outbuilding',
+    description: 'A picturesque small structure for storing tools and potting plants. Adds vertical interest and a touch of storybook charm to the garden.',
+    imageUrl: 'https://images.unsplash.com/photo-1466037803608-6874e0d7c377?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Woodland', 'Formal']
+  },
+  {
+    id: 'f8',
+    name: 'Woven Hammock',
+    scientificName: 'Cotton / Nylon',
+    description: 'The ultimate relaxation spot for lazy afternoons. Best strung between two sturdy trees or on a stand, adding a laid-back vibe to Tropical or Cottage gardens.',
+    imageUrl: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Tropical', 'Cottage', 'Zen']
+  },
+  {
+    id: 'f9',
+    name: 'Mosaic Bistro Set',
+    scientificName: 'Wrought Iron',
+    description: 'A charming, intimate seating arrangement for two. Perfect for morning coffee in a sunny nook, adding continental flair to Cottage or Formal terraces.',
+    imageUrl: 'https://images.unsplash.com/photo-1589136709855-3392a5433100?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Formal', 'Modern']
+  },
+  {
+    id: 'f10',
+    name: 'Garden Archway',
+    scientificName: 'Metal / Wood Structure',
+    description: 'A romantic vertical accent that frames pathways or entrances. Ideal for supporting climbing roses or clematis in Cottage and Formal designs.',
+    imageUrl: 'https://images.unsplash.com/photo-1557429287-b2e26467fc2b?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Formal', 'Woodland']
   }
 ];

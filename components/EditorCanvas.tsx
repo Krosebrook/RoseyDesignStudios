@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ImagePlus, Plus, X, Download, Sprout, Box, Layers, Undo2, Redo2, CornerDownLeft } from 'lucide-react';
+import { ImagePlus, Box, Layers, Undo2, Redo2, Download, CornerDownLeft, Sprout, X, MousePointer2, SlidersHorizontal } from 'lucide-react';
 import { LoadingState } from '../types';
 
 interface PlantMarker {
@@ -45,18 +45,30 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   currentIndex
 }) => {
   const [is3DMode, setIs3DMode] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState({ x: 0, y: 0 });
+  const [followCursor, setFollowCursor] = useState(true);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!is3DMode || !currentImage) return;
+    if (!is3DMode || !currentImage || !followCursor) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
-    // Calculate normalized coordinates (-1 to 1) for better rotation math
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
     
-    setMousePos({ x, y });
+    // Map normalized coordinates to degrees (max 25 degrees)
+    setRotation({
+        x: -y * 25, 
+        y: x * 25 
+    });
   };
+
+  const handleManualRotate = (axis: 'x' | 'y', value: number) => {
+      setRotation(prev => ({ ...prev, [axis]: value }));
+  };
+
+  // Derived shadow values based on rotation
+  const shadowX = -(rotation.y / 25) * 30;
+  const shadowY = (rotation.x / 25) * 30;
 
   return (
     <div className="lg:col-span-8">
@@ -103,9 +115,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               <div 
                 className="relative transition-transform duration-200 ease-out max-w-full max-h-[75vh]"
                 style={is3DMode ? {
-                    transform: `rotateY(${mousePos.x * 15}deg) rotateX(${-mousePos.y * 15}deg) scale(0.9)`,
+                    transform: `rotateY(${rotation.y}deg) rotateX(${rotation.x}deg) scale(0.9)`,
                     transformStyle: 'preserve-3d',
-                    boxShadow: `${-mousePos.x * 30}px ${-mousePos.y * 30}px 50px rgba(0,0,0,0.25)`
+                    boxShadow: `${shadowX}px ${shadowY}px 50px rgba(0,0,0,0.25)`
                 } : {}}
               >
                   <img 
@@ -122,7 +134,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                     <div 
                         className="absolute inset-0 pointer-events-none z-30 rounded-lg mix-blend-overlay"
                         style={{
-                            background: `linear-gradient(${135 + mousePos.x * 45}deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)`,
+                            background: `linear-gradient(${135 + rotation.y}deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%)`,
                             opacity: 0.8
                         }}
                     />
@@ -175,9 +187,52 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                 </div>
               )}
               
+              {/* 3D Controls Overlay */}
               {is3DMode && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-1.5 rounded-full text-xs backdrop-blur-md pointer-events-none flex items-center gap-2 shadow-lg border border-white/10">
-                      <Box size={12} /> Move mouse to rotate perspective
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md border border-stone-200 p-4 rounded-2xl shadow-xl flex flex-col gap-3 w-72 z-40 animate-fade-in-up">
+                      <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+                          <div className="flex items-center gap-2 text-xs font-bold text-stone-700 uppercase tracking-wider">
+                              <SlidersHorizontal size={12} /> Perspective
+                          </div>
+                          <button 
+                              onClick={() => setFollowCursor(!followCursor)}
+                              className={`text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors font-medium border ${followCursor ? 'bg-primary-50 text-primary-700 border-primary-200' : 'bg-stone-50 text-stone-500 border-stone-200'}`}
+                          >
+                              <MousePointer2 size={12} />
+                              {followCursor ? 'Follow Mouse' : 'Manual Control'}
+                          </button>
+                      </div>
+
+                      <div className="space-y-4">
+                          <div className="space-y-1.5">
+                              <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                                  <span>Tilt (X-Axis)</span>
+                                  <span>{Math.round(rotation.x)}°</span>
+                              </div>
+                              <input 
+                                  type="range" 
+                                  min="-45" max="45" 
+                                  value={rotation.x}
+                                  onChange={(e) => handleManualRotate('x', parseFloat(e.target.value))}
+                                  disabled={followCursor}
+                                  className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer ${followCursor ? 'bg-stone-100 opacity-50' : 'bg-stone-200 accent-indigo-600'}`}
+                              />
+                          </div>
+                          <div className="space-y-1.5">
+                              <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                                  <span>Pan (Y-Axis)</span>
+                                  <span>{Math.round(rotation.y)}°</span>
+                              </div>
+                              <input 
+                                  type="range" 
+                                  min="-45" max="45" 
+                                  value={rotation.y}
+                                  onChange={(e) => handleManualRotate('y', parseFloat(e.target.value))}
+                                  disabled={followCursor}
+                                  className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer ${followCursor ? 'bg-stone-100 opacity-50' : 'bg-stone-200 accent-indigo-600'}`}
+                              />
+                          </div>
+                      </div>
                   </div>
               )}
             </div>

@@ -1,6 +1,7 @@
 
 import { getAI } from "./config";
 import { createLogger } from "../../utils/logger";
+import { PromptService } from "../prompts";
 import { GENERATION_ANGLES, GENERATION_LIGHTING } from "../../data/constants";
 
 const logger = createLogger('AI:Advisory');
@@ -38,34 +39,18 @@ export const planImageComposition = async (
 ): Promise<CreativePlan> => {
   const ai = getAI();
   
-  // Construct a richer context for the reasoning model
   const envContext = [
     sunlight ? `Sunlight: ${sunlight}` : '',
     water ? `Water Needs: ${water}` : '',
     seasons ? `Seasons: ${seasons.join(', ')}` : ''
   ].filter(Boolean).join('. ');
 
-  const prompt = `
-    Role: Creative Director for Botanical Photography.
-    Task: Plan the composition for a unique image of "${name}".
-    Context: ${description}
-    Environmental Factors: ${envContext}
-    
-    User Preferences:
-    - Style: ${userStyle || "Decide best style based on plant context"}
-    - Lighting: ${userLighting || "Decide best lighting based on plant context (e.g., Shade plants should not have harsh direct sun)"}
-
-    Analyze the plant's features and its environmental needs to determine the absolute best Camera Angle and Lighting to showcase it uniquely.
-    If the plant is a seasonal bloomer, ensure the lighting reflects that season.
-    
-    Output JSON ONLY:
-    {
-      "angle": "specific camera angle string (e.g. 'Low angle looking up' for trees, 'Macro top-down' for groundcover)",
-      "lighting": "specific lighting condition string (e.g. 'Dappled sunlight' for ferns, 'Golden hour' for sun-lovers)",
-      "styleModifier": "additional artistic keywords to mix with base style to enhance the vibe",
-      "reasoning": "brief explanation why this composition fits this plant's nature"
-    }
-  `;
+  const prompt = PromptService.buildCompositionPlanPrompt(
+    name, 
+    description, 
+    envContext, 
+    { style: userStyle, lighting: userLighting }
+  );
 
   try {
     const result = await ai.models.generateContent({
@@ -87,12 +72,14 @@ export const planImageComposition = async (
       angle: GENERATION_ANGLES[Math.floor(Math.random() * GENERATION_ANGLES.length)],
       lighting: userLighting || GENERATION_LIGHTING[Math.floor(Math.random() * GENERATION_LIGHTING.length)],
       styleModifier: "high detail",
-      reasoning: "Fallback randomization."
+      reasoning: "Fallback randomization due to AI timeout."
     };
   }
 };
 
 export const generatePlantDescription = async (prompt: string, currentDescription: string): Promise<string> => {
+    // Note: prompt is passed in, but we could also use PromptService here if the signature allowed.
+    // For now, keeping signature compatible but consuming it safely.
     const ai = getAI();
     try {
         const response = await ai.models.generateContent({

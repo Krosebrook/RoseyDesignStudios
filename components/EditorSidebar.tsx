@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus, PenTool, Eraser, X } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { PlantCard } from './PlantCard';
+import { Button, Input, TextArea, Card } from './common/UI';
 
 interface EditorSidebarProps {
   activeTab: 'tools' | 'plants';
@@ -63,14 +64,12 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-          handleAddCustomItem();
-      }
+      if (e.key === 'Enter') handleAddCustomItem();
   };
 
   return (
     <div className="lg:col-span-4 flex flex-col h-full max-h-[800px]">
-      {/* Tabs */}
+      {/* Tab Navigation */}
       <div className="flex mb-4 bg-stone-100 p-1 rounded-xl">
         {[
           { id: 'tools', label: 'Tools', icon: null },
@@ -95,11 +94,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         {activeTab === 'tools' ? (
           <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
             {/* Upload Section */}
-            <div className={`bg-white p-6 rounded-2xl shadow-sm border border-stone-200 ${loading.operation === 'uploading' ? 'opacity-50 pointer-events-none' : ''}`}>
-              <h3 className="font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <ImagePlus size={18} /> Source Image
-              </h3>
-              
+            <Card title={<span className="flex items-center gap-2"><ImagePlus size={18} /> Source Image</span>} className={loading.operation === 'uploading' ? 'opacity-50' : ''}>
               <div className="grid grid-cols-2 gap-3">
                   <div 
                     onClick={() => fileInputRef.current?.click()}
@@ -121,49 +116,33 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                     <span className="text-xs font-medium">Take Photo</span>
                   </div>
               </div>
-              
-              <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={onFileUpload} 
-                  className="hidden" 
-                  accept="image/*"
-              />
-            </div>
+              <input type="file" ref={fileInputRef} onChange={onFileUpload} className="hidden" accept="image/*" />
+            </Card>
 
             {/* Text Edit Section */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-              <h3 className="font-semibold text-stone-800 mb-4">Edit Instructions</h3>
+            <Card title="Edit Instructions">
               <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1 block">
-                    What should change?
-                  </label>
-                  <textarea
-                    value={editPrompt}
-                    onChange={(e) => setEditPrompt(e.target.value)}
-                    placeholder="e.g., Add a swimming pool, change the grass to gravel, add red roses..."
-                    disabled={loading.isLoading}
-                    className="w-full p-3 rounded-lg border border-stone-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-sm min-h-[120px] resize-none disabled:bg-stone-50 disabled:text-stone-400"
-                  />
-                </div>
+                <TextArea
+                  label="What should change?"
+                  value={editPrompt}
+                  onChange={(e) => setEditPrompt(e.target.value)}
+                  placeholder="e.g., Add a swimming pool, change the grass to gravel, add red roses..."
+                  disabled={loading.isLoading}
+                  rows={4}
+                />
                 
-                <button
+                <Button
                   onClick={onEdit}
                   disabled={!currentImage || !editPrompt.trim() || loading.isLoading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md"
+                  isLoading={loading.operation === 'editing'}
+                  variant="secondary"
+                  className="w-full"
+                  rightIcon={!loading.isLoading ? <ArrowRight size={16} /> : undefined}
                 >
-                  {loading.operation === 'editing' ? (
-                     <>
-                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                       Applying Edits...
-                     </>
-                  ) : (
-                    <>Apply Edits <ArrowRight size={16} /></>
-                  )}
-                </button>
+                  {loading.operation === 'editing' ? 'Applying Edits...' : 'Apply Edits'}
+                </Button>
               </div>
-            </div>
+            </Card>
 
             {/* Tips Box */}
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-sm text-indigo-800">
@@ -177,8 +156,8 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
           </div>
         ) : (
           // Item Palette Section
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 flex flex-col h-full overflow-hidden">
-            <div className="p-4 border-b border-stone-100">
+          <Card className="flex flex-col h-full overflow-hidden p-0">
+            <div className="p-4 border-b border-stone-100 bg-white">
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
                 <input
@@ -238,25 +217,27 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                             onKeyDown={handleKeyDown}
                             className="w-full p-2 rounded-lg border border-stone-200 text-xs focus:border-primary-500 outline-none"
                         />
-                        <button 
-                            onClick={handleAddCustomItem}
-                            disabled={!customItemName.trim()}
-                            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg text-xs font-bold disabled:opacity-50 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                        <Button 
+                          onClick={handleAddCustomItem}
+                          disabled={!customItemName.trim()}
+                          size="sm"
+                          className="w-full"
+                          leftIcon={<Plus size={14} />}
                         >
-                            <Plus size={14} /> Add to Design Prompt
-                        </button>
+                          Add to Design Prompt
+                        </Button>
                     </div>
                 </div>
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 custom-scrollbar bg-white">
               <div className="grid grid-cols-2 gap-3">
                 {filteredPlants.map(plant => (
                   <PlantCard
                     key={plant.id}
                     plant={plant}
-                    images={[plant.imageUrl]} // Simplified for sidebar
+                    images={[plant.imageUrl]}
                     isGenerating={false}
                     onGenerateAI={() => {}}
                     onAddToDesign={onAddToDesign}
@@ -267,7 +248,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
         )}
       </div>
     </div>
