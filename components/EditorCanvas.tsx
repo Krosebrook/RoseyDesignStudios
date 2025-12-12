@@ -154,7 +154,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                       }}
                     >
                       {/* Pin Head */}
-                      <div className="w-8 h-8 bg-white text-primary-600 rounded-full shadow-lg flex items-center justify-center border-2 border-primary-500 cursor-pointer transition-transform hover:scale-110">
+                      <div className="w-8 h-8 bg-white text-primary-600 rounded-full shadow-md hover:shadow-xl flex items-center justify-center border-2 border-primary-500 cursor-pointer transition-all duration-200 hover:scale-110">
                         <Sprout size={16} className="group-hover/marker:hidden" />
                         <X size={16} className="hidden group-hover/marker:block text-red-500" onClick={() => onRemoveMarker(marker.id)} />
                       </div>

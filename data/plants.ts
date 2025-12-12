@@ -123,6 +123,42 @@ export const PLANTS: Plant[] = [
     category: 'Plant',
     styles: ['Zen', 'Woodland', 'Modern']
   },
+  {
+    id: '11',
+    name: 'Bamboo',
+    scientificName: 'Phyllostachys',
+    description: 'A fast-growing, evergreen grass known for its tall, hollow canes and lush foliage. It creates excellent privacy screens and adds a serene, vertical element to Zen, Tropical, and Modern gardens.',
+    sunlight: 'Full Sun',
+    water: 'Moderate',
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter'],
+    imageUrl: 'https://images.unsplash.com/photo-1519824644131-0da765452f1e?auto=format&fit=crop&w=800&q=80',
+    category: 'Plant',
+    styles: ['Zen', 'Tropical', 'Modern']
+  },
+  {
+    id: '12',
+    name: 'Foxglove',
+    scientificName: 'Digitalis purpurea',
+    description: 'Statuesque biennials or perennials featuring tall spikes of tubular, spotted flowers. They thrive in Partial Shade and add vertical drama and old-world charm to Cottage and Woodland settings.',
+    sunlight: 'Partial Shade',
+    water: 'Moderate',
+    seasons: ['Spring', 'Summer'],
+    imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=800&q=80',
+    category: 'Plant',
+    styles: ['Cottage', 'Woodland']
+  },
+  {
+    id: '13',
+    name: 'Agave',
+    scientificName: 'Agave americana',
+    description: 'A striking architectural succulent with large, fleshy, spiky leaves forming a rosette. Extremely Drought-tolerant and heat-loving, it serves as a bold focal point in Xeriscape and Modern landscapes.',
+    sunlight: 'Full Sun',
+    water: 'Drought-tolerant',
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter'],
+    imageUrl: 'https://images.unsplash.com/photo-1596720426673-e4e14290f0cc?auto=format&fit=crop&w=800&q=80',
+    category: 'Plant',
+    styles: ['Xeriscape', 'Modern']
+  },
   
   // WATER FEATURES
   {
@@ -132,7 +168,8 @@ export const PLANTS: Plant[] = [
     description: 'A peaceful water feature with swimming fish, water lilies, and surrounding rock work. Brings life and movement to any Zen or Tropical garden.',
     imageUrl: 'https://images.unsplash.com/photo-1516475429286-465d815a0df7?auto=format&fit=crop&w=800&q=80',
     category: 'Water Feature',
-    styles: ['Zen', 'Tropical']
+    styles: ['Zen', 'Tropical'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   },
   {
     id: 'w2',
@@ -141,7 +178,8 @@ export const PLANTS: Plant[] = [
     description: 'A classic multi-tiered stone fountain that provides soothing water sounds. Serves as an elegant focal point in Formal and Cottage gardens.',
     imageUrl: 'https://images.unsplash.com/photo-1598626382552-e3629a88127e?auto=format&fit=crop&w=800&q=80',
     category: 'Water Feature',
-    styles: ['Formal', 'Cottage']
+    styles: ['Formal', 'Cottage'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   },
   {
     id: 'w3',
@@ -150,7 +188,38 @@ export const PLANTS: Plant[] = [
     description: 'A charming addition that attracts local wildlife. Available in various styles, it fits perfectly in Cottage or Woodland settings.',
     imageUrl: 'https://images.unsplash.com/photo-1600675593895-722751950b0e?auto=format&fit=crop&w=800&q=80',
     category: 'Water Feature',
-    styles: ['Cottage', 'Woodland']
+    styles: ['Cottage', 'Woodland'],
+    seasons: ['Spring', 'Summer', 'Autumn']
+  },
+  {
+    id: 'w4',
+    name: 'Lion Head Wall Fountain',
+    scientificName: 'Wall-Mounted Spout',
+    description: 'A classic European-style wall feature where water gently spills from a sculpted lion\'s head into a basin. Ideal for small courtyards or patio walls where floor space is limited.',
+    imageUrl: 'https://images.unsplash.com/photo-1570654621852-9dd25b74c86a?auto=format&fit=crop&w=800&q=80',
+    category: 'Water Feature',
+    styles: ['Formal', 'Cottage'],
+    seasons: ['Spring', 'Summer', 'Autumn']
+  },
+  {
+    id: 'w5',
+    name: 'Natural Rock Stream',
+    scientificName: 'Recirculating Creek',
+    description: 'A dynamic water course designed to mimic a mountain brook, cascading over weathered stones. Creates soothing white noise and attracts birds to Woodland or Xeriscape gardens.',
+    imageUrl: 'https://images.unsplash.com/photo-1470755008296-2939845775eb?auto=format&fit=crop&w=800&q=80',
+    category: 'Water Feature',
+    styles: ['Woodland', 'Zen', 'Xeriscape'],
+    seasons: ['Spring', 'Summer', 'Autumn']
+  },
+  {
+    id: 'w6',
+    name: 'Reflecting Pool',
+    scientificName: 'Geometric Basin',
+    description: 'A still, mirror-like surface of water housed in a sleek rectangular or square basin. Adds a sense of infinite depth and modern serenity to contemporary landscapes.',
+    imageUrl: 'https://images.unsplash.com/photo-1616422359409-773a46973322?auto=format&fit=crop&w=800&q=80',
+    category: 'Water Feature',
+    styles: ['Modern', 'Formal', 'Zen'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   },
 
   // FURNITURE
@@ -161,7 +230,8 @@ export const PLANTS: Plant[] = [
     description: 'A durable, weather-resistant wooden bench that naturally weathers to a beautiful silver-grey. Complements Cottage, Modern, and Zen styles.',
     imageUrl: 'https://images.unsplash.com/photo-1560746268-9c221d7d591c?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Cottage', 'Modern', 'Formal', 'Zen']
+    styles: ['Cottage', 'Modern', 'Formal', 'Zen'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   },
   {
     id: 'f2',
@@ -170,7 +240,8 @@ export const PLANTS: Plant[] = [
     description: 'Provides shade and vertical definition to outdoor spaces. Perfect for climbing plants in Modern, Tropical, or Cottage designs.',
     imageUrl: 'https://images.unsplash.com/photo-1592330775194-3b315470b92e?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Modern', 'Cottage', 'Tropical', 'Formal']
+    styles: ['Modern', 'Cottage', 'Tropical', 'Formal'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   },
   {
     id: 'f3',
@@ -179,7 +250,8 @@ export const PLANTS: Plant[] = [
     description: 'Create a cozy gathering spot for cool evenings. Adds warmth and ambiance to Modern, Cottage, or Xeriscape patio areas.',
     imageUrl: 'https://images.unsplash.com/photo-1632930807199-7618c2030518?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Modern', 'Cottage', 'Xeriscape']
+    styles: ['Modern', 'Cottage', 'Xeriscape'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   },
   {
     id: 'f4',
@@ -188,7 +260,8 @@ export const PLANTS: Plant[] = [
     description: 'Iconic comfortable outdoor seating with wide armrests and a slanted back. Ideal for relaxing on lawns in Cottage style gardens.',
     imageUrl: 'https://images.unsplash.com/photo-1596115630706-2249490c9551?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Cottage']
+    styles: ['Cottage'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   },
   {
     id: 'f5',
@@ -197,7 +270,8 @@ export const PLANTS: Plant[] = [
     description: 'A sleek, minimalist dining arrangement perfect for outdoor entertaining. Features weather-resistant materials and clean lines suitable for contemporary landscapes.',
     imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Modern', 'Formal', 'Zen']
+    styles: ['Modern', 'Formal', 'Zen'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   },
   {
     id: 'f6',
@@ -206,7 +280,8 @@ export const PLANTS: Plant[] = [
     description: 'A charming, rough-hewn wooden bench that invites quiet reflection. Blends organically into woodland paths and cottage garden corners.',
     imageUrl: 'https://images.unsplash.com/photo-1555652614-72266850a79d?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Woodland', 'Cottage', 'Xeriscape']
+    styles: ['Woodland', 'Cottage', 'Xeriscape'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   },
   {
     id: 'f7',
@@ -215,7 +290,8 @@ export const PLANTS: Plant[] = [
     description: 'A picturesque small structure for storing tools and potting plants. Adds vertical interest and a touch of storybook charm to the garden.',
     imageUrl: 'https://images.unsplash.com/photo-1466037803608-6874e0d7c377?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Cottage', 'Woodland', 'Formal']
+    styles: ['Cottage', 'Woodland', 'Formal'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   },
   {
     id: 'f8',
@@ -224,7 +300,8 @@ export const PLANTS: Plant[] = [
     description: 'The ultimate relaxation spot for lazy afternoons. Best strung between two sturdy trees or on a stand, adding a laid-back vibe to Tropical or Cottage gardens.',
     imageUrl: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Tropical', 'Cottage', 'Zen']
+    styles: ['Tropical', 'Cottage', 'Zen'],
+    seasons: ['Spring', 'Summer']
   },
   {
     id: 'f9',
@@ -233,7 +310,8 @@ export const PLANTS: Plant[] = [
     description: 'A charming, intimate seating arrangement for two. Perfect for morning coffee in a sunny nook, adding continental flair to Cottage or Formal terraces.',
     imageUrl: 'https://images.unsplash.com/photo-1589136709855-3392a5433100?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Cottage', 'Formal', 'Modern']
+    styles: ['Cottage', 'Formal', 'Modern'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   },
   {
     id: 'f10',
@@ -242,6 +320,17 @@ export const PLANTS: Plant[] = [
     description: 'A romantic vertical accent that frames pathways or entrances. Ideal for supporting climbing roses or clematis in Cottage and Formal designs.',
     imageUrl: 'https://images.unsplash.com/photo-1557429287-b2e26467fc2b?auto=format&fit=crop&w=800&q=80',
     category: 'Furniture',
-    styles: ['Cottage', 'Formal', 'Woodland']
+    styles: ['Cottage', 'Formal', 'Woodland'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
+  },
+  {
+    id: 'f11',
+    name: 'Sun Lounger',
+    scientificName: 'Reclining Chaise',
+    description: 'The ultimate poolside or patio companion for sunbathing and relaxation. Features adjustable backrests and weather-resistant fabric, making it an essential piece for Modern and Tropical retreats.',
+    imageUrl: 'https://images.unsplash.com/photo-1532323544230-7191fd51bc1b?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Modern', 'Tropical', 'Formal'],
+    seasons: ['Summer', 'Spring']
   }
 ];

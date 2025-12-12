@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus, PenTool, Eraser, X } from 'lucide-react';
+import { Upload, ImagePlus, ArrowRight, Sprout, Search, Camera, Plus, PenTool, Eraser, X, Palette } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { PlantCard } from './PlantCard';
 import { Button, Input, TextArea, Card } from './common/UI';
@@ -43,7 +43,19 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
   const [showCustomItem, setShowCustomItem] = useState(false);
   const [customItemName, setCustomItemName] = useState('');
   const [customItemDetails, setCustomItemDetails] = useState('');
+  const [accentColor, setAccentColor] = useState<string | null>(null);
   const customNameInputRef = useRef<HTMLInputElement>(null);
+
+  const colors = [
+    { name: 'Red', hex: '#ef4444', class: 'bg-red-500' },
+    { name: 'Orange', hex: '#f97316', class: 'bg-orange-500' },
+    { name: 'Yellow', hex: '#eab308', class: 'bg-yellow-400' },
+    { name: 'Green', hex: '#22c55e', class: 'bg-green-500' },
+    { name: 'Blue', hex: '#3b82f6', class: 'bg-blue-500' },
+    { name: 'Purple', hex: '#a855f7', class: 'bg-purple-500' },
+    { name: 'Pink', hex: '#ec4899', class: 'bg-pink-500' },
+    { name: 'White', hex: '#ffffff', class: 'bg-white border border-stone-200' },
+  ];
 
   useEffect(() => {
     if (showCustomItem && customNameInputRef.current) {
@@ -60,6 +72,20 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         setCustomItemName('');
         setCustomItemDetails('');
         setShowCustomItem(false);
+    }
+  };
+
+  const handleColorSelect = (color: typeof colors[0]) => {
+    setAccentColor(color.name);
+    const instruction = `Use ${color.name.toLowerCase()} as the primary accent color`;
+    
+    // Smart append: avoid duplicates
+    if (!editPrompt.toLowerCase().includes(`accent color`)) {
+        const separator = editPrompt.trim().length > 0 && !editPrompt.trim().match(/[.!?]$/) ? '. ' : editPrompt.trim().length > 0 ? ' ' : '';
+        setEditPrompt(`${editPrompt.trim()}${separator}${instruction}.`);
+    } else {
+        const separator = editPrompt.trim().length > 0 && !editPrompt.trim().match(/[.!?]$/) ? '. ' : ' ';
+        setEditPrompt(`${editPrompt.trim()}${separator}${instruction}.`);
     }
   };
 
@@ -119,6 +145,29 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
               <input type="file" ref={fileInputRef} onChange={onFileUpload} className="hidden" accept="image/*" />
             </Card>
 
+            {/* Color Palette Section */}
+            <Card title={<span className="flex items-center gap-2"><Palette size={18} /> Color Palette</span>}>
+               <div className="grid grid-cols-4 gap-3">
+                  {colors.map(c => (
+                     <button
+                       key={c.name}
+                       onClick={() => handleColorSelect(c)}
+                       className={`h-10 rounded-full shadow-sm transition-all transform hover:scale-110 flex items-center justify-center relative ${c.class} ${accentColor === c.name ? 'ring-2 ring-offset-2 ring-stone-400 scale-105' : 'hover:ring-2 hover:ring-offset-1 hover:ring-stone-200'}`}
+                       title={`Set accent color to ${c.name}`}
+                       aria-label={`Select ${c.name}`}
+                       aria-pressed={accentColor === c.name}
+                     >
+                       {accentColor === c.name && <div className={`w-2 h-2 rounded-full ${c.name === 'White' || c.name === 'Yellow' ? 'bg-stone-800' : 'bg-white'}`} />}
+                     </button>
+                  ))}
+               </div>
+               {accentColor && (
+                 <p className="text-xs text-stone-500 mt-3 text-center animate-fade-in">
+                   Primary accent: <span className="font-bold" style={{ color: colors.find(c => c.name === accentColor)?.hex }}>{accentColor}</span>
+                 </p>
+               )}
+            </Card>
+
             {/* Text Edit Section */}
             <Card title="Edit Instructions">
               <div className="space-y-4">
@@ -129,6 +178,8 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
                   placeholder="e.g., Add a swimming pool, change the grass to gravel, add red roses..."
                   disabled={loading.isLoading}
                   rows={4}
+                  className={accentColor ? `border-l-4` : ''}
+                  style={accentColor ? { borderLeftColor: colors.find(c => c.name === accentColor)?.hex } : {}}
                 />
                 
                 <Button
@@ -196,61 +247,4 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
               {/* Custom Item Form */}
               {showCustomItem && (
                 <div className="mt-3 p-4 bg-primary-50/50 rounded-xl border border-primary-100 animate-fade-in relative">
-                    <div className="absolute top-0 left-4 -translate-y-1/2 bg-white px-2 text-[10px] font-bold text-primary-600 uppercase tracking-wider">
-                        Add Unique Object
-                    </div>
-                    <div className="space-y-2 mt-1">
-                        <input 
-                            ref={customNameInputRef}
-                            type="text"
-                            placeholder="Item Name (e.g. Garden Gnome)"
-                            value={customItemName}
-                            onChange={(e) => setCustomItemName(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            className="w-full p-2 rounded-lg border border-stone-200 text-xs focus:border-primary-500 outline-none"
-                        />
-                        <input 
-                            type="text"
-                            placeholder="Details (e.g. Red hat, ceramic)"
-                            value={customItemDetails}
-                            onChange={(e) => setCustomItemDetails(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            className="w-full p-2 rounded-lg border border-stone-200 text-xs focus:border-primary-500 outline-none"
-                        />
-                        <Button 
-                          onClick={handleAddCustomItem}
-                          disabled={!customItemName.trim()}
-                          size="sm"
-                          className="w-full"
-                          leftIcon={<Plus size={14} />}
-                        >
-                          Add to Design Prompt
-                        </Button>
-                    </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-3 custom-scrollbar bg-white">
-              <div className="grid grid-cols-2 gap-3">
-                {filteredPlants.map(plant => (
-                  <PlantCard
-                    key={plant.id}
-                    plant={plant}
-                    images={[plant.imageUrl]}
-                    isGenerating={false}
-                    onGenerateAI={() => {}}
-                    onAddToDesign={onAddToDesign}
-                    isDraggable={true}
-                    onDragStart={onDragStart}
-                    mini={true}
-                  />
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-      </div>
-    </div>
-  );
-};
+                    <div className="absolute top-0 left
