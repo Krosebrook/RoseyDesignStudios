@@ -1,6 +1,4 @@
 
-
-
 export interface GeneratedImage {
   id: string;
   dataUrl: string; // Base64 data URL
@@ -27,12 +25,10 @@ export interface LoadingState {
   error?: string | null;
 }
 
-export interface Result<T> {
-  success: boolean;
-  data?: T;
-  error?: any;
-  message?: string;
-}
+// Improved Result type with discriminated union for better type narrowing
+export type Result<T> = 
+  | { success: true; data: T; message?: string }
+  | { success: false; error: Error; message: string; data?: undefined };
 
 export type AspectRatio = '1:1' | '3:4' | '4:3' | '9:16' | '16:9';
 

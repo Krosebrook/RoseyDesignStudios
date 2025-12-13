@@ -172,7 +172,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
                onClick={handleGenerateClick}
                disabled={isGeneratingImage}
                className="w-full text-xs flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md font-bold transition-colors shadow-sm disabled:opacity-50"
-               title="Generate a new image with your selected style and lighting."
+               title="Generate a new high-resolution image with your selected style and lighting."
              >
                 {isGeneratingImage ? <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" /> : <ImagePlus size={12} />}
                 {isGeneratingImage ? 'Generating...' : 'Generate Variation'}
@@ -187,7 +187,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
                   onClick={() => onGenerateImage()}
                   disabled={isGeneratingImage}
                   className="text-[10px] flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium transition-colors border border-amber-100"
-                  title="Generate a surprise variation with randomized settings."
+                  title="Generate a surprise high-resolution variation with randomized settings."
                 >
                     {isGeneratingImage ? <span className="animate-spin">⏳</span> : <ImagePlus size={10} />}
                     {isGeneratingImage ? 'Generating...' : 'New Image (Random)'}

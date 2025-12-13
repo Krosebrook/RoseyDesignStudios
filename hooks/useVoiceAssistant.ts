@@ -3,29 +3,39 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { getAIClient } from '../services/gemini';
 import { LiveServerMessage, Modality } from '@google/genai';
 import { createBlob, decode, decodeAudioData } from '../utils/audio';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('VoiceAssistant');
+
+// Polyfill type for cross-browser compatibility
+const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
 
 export const useVoiceAssistant = () => {
   const [isActive, setIsActive] = useState(false);
   const [status, setStatus] = useState('Ready to chat');
   const [volume, setVolume] = useState(0);
   
-  // Refs for audio context and processing to maintain state across renders without triggering re-renders
+  // Refs for audio context and processing to maintain state across renders
   const inputContextRef = useRef<AudioContext | null>(null);
   const outputContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
 
   const cleanup = useCallback(() => {
+    logger.debug('Cleaning up voice session resources');
+    
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    
     if (inputContextRef.current && inputContextRef.current.state !== 'closed') {
-       inputContextRef.current.close();
+       inputContextRef.current.close().catch(e => logger.warn('Error closing input context', e));
        inputContextRef.current = null;
     }
+    
     if (outputContextRef.current && outputContextRef.current.state !== 'closed') {
-       outputContextRef.current.close();
+       outputContextRef.current.close().catch(e => logger.warn('Error closing output context', e));
        outputContextRef.current = null;
     }
     
@@ -44,13 +54,14 @@ export const useVoiceAssistant = () => {
   const startSession = useCallback(async () => {
     try {
       setStatus('Connecting...');
+      logger.info('Starting voice session');
       const ai = getAIClient();
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 16000});
-      const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
+      const inputAudioContext = new AudioContextClass({ sampleRate: 16000 });
+      const outputAudioContext = new AudioContextClass({ sampleRate: 24000 });
       
       inputContextRef.current = inputAudioContext;
       outputContextRef.current = outputAudioContext;
@@ -61,6 +72,7 @@ export const useVoiceAssistant = () => {
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         callbacks: {
           onopen: () => {
+            logger.info('Voice session opened');
             setStatus('Listening...');
             setIsActive(true);
 
@@ -72,7 +84,7 @@ export const useVoiceAssistant = () => {
 
               const inputData = e.inputBuffer.getChannelData(0);
               
-              // Calculate volume for visualizer
+              // Calculate volume RMS for visualizer
               let sum = 0;
               for(let i=0; i<inputData.length; i++) sum += inputData[i] * inputData[i];
               setVolume(Math.sqrt(sum / inputData.length));
@@ -93,7 +105,8 @@ export const useVoiceAssistant = () => {
                const audioCtx = outputContextRef.current;
                
                // Ensure we don't schedule audio in the past
-               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioCtx.currentTime);
+               const currentTime = audioCtx.currentTime;
+               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, currentTime);
                
                const buffer = await decodeAudioData(
                  decode(base64Audio),
@@ -114,11 +127,12 @@ export const useVoiceAssistant = () => {
             }
           },
           onclose: () => {
+            logger.info('Voice session closed by server');
             setStatus('Connection closed');
             setIsActive(false);
           },
           onerror: (e) => {
-            console.error(e);
+            logger.error('Voice session error', e);
             setStatus('Error occurred');
             setIsActive(false);
           }
@@ -133,7 +147,7 @@ export const useVoiceAssistant = () => {
       });
       
     } catch (err) {
-      console.error(err);
+      logger.error('Failed to access microphone or start session', err);
       setStatus('Failed to access microphone');
       cleanup();
     }

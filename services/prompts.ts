@@ -22,6 +22,7 @@ export const PromptService = {
   ): string => {
     const envDetails = [
       plant.sunlight ? `Sunlight: ${plant.sunlight}` : '',
+      plant.water ? `Water Needs: ${plant.water}` : '',
       plant.seasons ? `Active Seasons: ${plant.seasons.join(', ')}` : '',
       plant.styles ? `Garden Styles: ${plant.styles.join(', ')}` : ''
     ].filter(Boolean).join('. ');
@@ -38,8 +39,11 @@ export const PromptService = {
       - Artistic Style: ${context.style || 'Photorealistic 8k'}
       
       REQUIREMENTS:
-      - Focus purely on the plant aesthetics in its natural or designed setting.
+      - Focus purely on the plant aesthetics.
       - High detail, 8k resolution, depth of field.
+      - Make it look distinctively different from standard stock photos.
+      - Use the random seed to vary composition, zoom level, and background blur.
+      - Ensure uniqueness compared to typical ${plant.name} photos.
       - Random Noise Seed: ${context.seed}
     `;
   },

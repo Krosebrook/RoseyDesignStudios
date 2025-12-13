@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Plant } from '../types';
 import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download, CheckCircle2, Armchair, Droplet, Settings2, Flower } from 'lucide-react';
 import { createDragGhost } from '../utils/ui';
@@ -19,7 +19,11 @@ interface PlantCardProps {
   onCustomize?: (e: React.MouseEvent, plant: Plant) => void; // New prop for opening customization settings
 }
 
-export const PlantCard: React.FC<PlantCardProps> = ({
+/**
+ * PlantCard displays individual plant details and handles image variation interactions.
+ * Wrapped in React.memo to optimize rendering in large lists (PlantLibrary).
+ */
+export const PlantCard: React.FC<PlantCardProps> = memo(({
   plant,
   images,
   isGenerating,
@@ -43,20 +47,20 @@ export const PlantCard: React.FC<PlantCardProps> = ({
     }
   }, [images.length]);
 
-  const nextImage = (e: React.MouseEvent) => {
+  const nextImage = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentIndex((prev) => (prev + 1) % images.length);
-  };
+  }, [images.length]);
 
-  const prevImage = (e: React.MouseEvent) => {
+  const prevImage = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  }, [images.length]);
 
-  const selectDot = (e: React.MouseEvent, index: number) => {
+  const selectDot = useCallback((e: React.MouseEvent, index: number) => {
     e.stopPropagation();
     setCurrentIndex(index);
-  };
+  }, []);
 
   const handleDragStartInternal = (e: React.DragEvent) => {
     if (onDragStart) {
@@ -99,6 +103,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
                  }}
                  className="bg-white text-primary-600 hover:text-primary-700 p-2 rounded-full shadow-lg hover:scale-110 transition-all cursor-pointer transform translate-y-2 group-hover:translate-y-0 duration-200"
                  title="Add to Design"
+                 aria-label={`Add ${plant.name} to design`}
                >
                  <PlusCircle size={20} />
                </button>
@@ -151,6 +156,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
           onClick={(e) => e.stopPropagation()}
           className="absolute top-2 right-2 lg:right-auto lg:left-28 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white p-1.5 rounded-full lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity z-20"
           title="Download this variation"
+          aria-label="Download variation"
         >
           <Download size={14} />
         </a>
@@ -162,6 +168,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
               onClick={prevImage}
               className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm z-30 lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity"
               title="Previous variation"
+              aria-label="Previous image"
             >
               <ChevronLeft size={18} />
             </button>
@@ -169,6 +176,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
               onClick={nextImage}
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm z-30 lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity"
               title="Next variation"
+              aria-label="Next image"
             >
               <ChevronRight size={18} />
             </button>
@@ -216,6 +224,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
                disabled={isGenerating}
                className="bg-white/90 hover:bg-white text-stone-600 hover:text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 border border-stone-200"
                title="Customize artistic style and lighting settings for image generation."
+               aria-label="Customize image settings"
              >
                <Settings2 size={16} />
              </button>
@@ -226,7 +235,8 @@ export const PlantCard: React.FC<PlantCardProps> = ({
              onClick={(e) => onGenerateAI(e, plant)}
              disabled={isGenerating}
              className="bg-white/90 hover:bg-white text-primary-600 p-2 rounded-full shadow-lg transition-all hover:scale-110 border border-primary-100"
-             title="Instantly generate a new, unique image variation of this plant using AI."
+             title="Generate a unique, high-resolution AI variation."
+             aria-label="Generate new image"
            >
              {isGenerating ? (
                  <div className="animate-spin h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full" />
@@ -305,6 +315,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             onClick={() => onAddToDesign(plant.name)}
             className="w-full mt-4 py-2.5 px-4 bg-stone-50 hover:bg-primary-50 hover:text-primary-700 text-stone-600 hover:border-primary-200 border border-stone-200 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow"
             title="Add this item to the Editor for placement in your design"
+            aria-label={`Add ${plant.name} to design`}
           >
             <PlusCircle size={16} className="text-primary-500 group-hover/btn:scale-110 transition-transform" />
             Add to Design
@@ -313,4 +324,6 @@ export const PlantCard: React.FC<PlantCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PlantCard.displayName = 'PlantCard';

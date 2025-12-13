@@ -57,18 +57,23 @@ export const generatePlantImage = async (
   prompt: string,
 ): Promise<string> => {
   return withRetry(async () => {
-    logger.info("Generating Plant Variation");
+    logger.info("Generating Plant Variation (HQ)");
     const ai = getAI();
     
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: { parts: [{ text: prompt }] },
-      config: { responseModalities: [Modality.IMAGE] },
+    // Switch to Imagen 3 (imagen-4.0-generate-001) for high-resolution results
+    const response = await ai.models.generateImages({
+      model: 'imagen-4.0-generate-001',
+      prompt: prompt,
+      config: { 
+        numberOfImages: 1,
+        outputMimeType: 'image/jpeg',
+        aspectRatio: '1:1'
+      },
     });
 
-    const part = response.candidates?.[0]?.content?.parts?.[0];
-    if (!part?.inlineData?.data) throw new Error("No image data returned from generation model");
+    const base64ImageBytes = response.generatedImages?.[0]?.image?.imageBytes;
+    if (!base64ImageBytes) throw new Error("No image data returned from generation model");
     
-    return `data:image/png;base64,${part.inlineData.data}`;
+    return `data:image/jpeg;base64,${base64ImageBytes}`;
   });
 };
