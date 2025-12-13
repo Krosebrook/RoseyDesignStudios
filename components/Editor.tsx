@@ -97,7 +97,11 @@ export const Editor: React.FC = () => {
             e.dataTransfer.setData('plantName', name);
             e.dataTransfer.effectAllowed = 'copy';
           }}
-          onAddToDesign={(name) => editor.updatePromptWithInstruction(name.startsWith('Add') ? name : `Add ${name}`)}
+          onAddToDesign={(instruction) => {
+             // Check if instruction already starts with a verb (Add, Remove, etc)
+             const isCommand = /^(Add|Remove|Delete|Change|Move)/i.test(instruction);
+             editor.updatePromptWithInstruction(isCommand ? instruction : `Add ${instruction}`);
+          }}
           onAddCustomItem={handleAddCustomItem}
           onOpenCamera={() => editor.setShowCamera(true)}
         />
