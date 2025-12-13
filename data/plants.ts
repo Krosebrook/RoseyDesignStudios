@@ -160,6 +160,44 @@ export const PLANTS: Plant[] = [
     styles: ['Xeriscape', 'Modern']
   },
   
+  // FEATURES
+  {
+    id: 'b1',
+    name: 'Rose Bed',
+    scientificName: 'Rosa Collection',
+    description: 'A dedicated bed of blooming roses in various shades. Requires Full Sun and regular care, offering a classic romantic feel to Cottage and Formal gardens.',
+    sunlight: 'Full Sun',
+    water: 'Moderate',
+    seasons: ['Spring', 'Summer'],
+    imageUrl: 'https://images.unsplash.com/photo-1596436662057-7e6eb0058b72?auto=format&fit=crop&w=800&q=80',
+    category: 'Feature',
+    styles: ['Cottage', 'Formal']
+  },
+  {
+    id: 'b2',
+    name: 'Herb Garden',
+    scientificName: 'Culinary Mix',
+    description: 'A functional and aromatic patch featuring Rosemary, Thyme, Basil, and Mint. Perfect for sunny spots near the kitchen in Cottage or Xeriscape designs.',
+    sunlight: 'Full Sun',
+    water: 'Moderate',
+    seasons: ['Spring', 'Summer'],
+    imageUrl: 'https://images.unsplash.com/photo-1558230588-4e8910408479?auto=format&fit=crop&w=800&q=80',
+    category: 'Feature',
+    styles: ['Cottage', 'Xeriscape']
+  },
+  {
+    id: 'b3',
+    name: 'Wildflower Patch',
+    scientificName: 'Pollinator Mix',
+    description: 'A naturalistic area sown with native wildflowers to attract bees and butterflies. Low maintenance and drought tolerant, ideal for Woodland and Xeriscape gardens.',
+    sunlight: 'Full Sun',
+    water: 'Drought-tolerant',
+    seasons: ['Spring', 'Summer'],
+    imageUrl: 'https://images.unsplash.com/photo-1456614144369-02c38290f653?auto=format&fit=crop&w=800&q=80',
+    category: 'Feature',
+    styles: ['Woodland', 'Xeriscape', 'Cottage']
+  },
+  
   // WATER FEATURES
   {
     id: 'w1',
@@ -332,5 +370,35 @@ export const PLANTS: Plant[] = [
     category: 'Furniture',
     styles: ['Modern', 'Tropical', 'Formal'],
     seasons: ['Summer', 'Spring']
+  },
+  {
+    id: 'f12',
+    name: 'Hanging Egg Chair',
+    scientificName: 'Rattan & Steel',
+    description: 'A stylish, suspended cocoon chair that offers a cozy retreat. Perfect for reading corners in Modern, Tropical, or Zen gardens.',
+    imageUrl: 'https://images.unsplash.com/photo-1596178836239-2a91176b5c3d?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Modern', 'Tropical', 'Zen'],
+    seasons: ['Spring', 'Summer', 'Autumn']
+  },
+  {
+    id: 'f13',
+    name: 'Farmhouse Dining Table',
+    scientificName: 'Reclaimed Teak',
+    description: 'A robust, communal table for alfresco dining. Its weathered texture anchors the space in Cottage, Xeriscape, or Woodland settings.',
+    imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Xeriscape', 'Woodland'],
+    seasons: ['Spring', 'Summer', 'Autumn']
+  },
+  {
+    id: 'f14',
+    name: 'Classic Garden Swing',
+    scientificName: 'Painted Timber',
+    description: 'A nostalgic 3-seater swing bench, often framed by an arbor. Brings motion and old-world romance to Cottage and Formal gardens.',
+    imageUrl: 'https://images.unsplash.com/photo-1555529733-0e670560f7e1?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Formal'],
+    seasons: ['Spring', 'Summer', 'Autumn']
   }
 ];

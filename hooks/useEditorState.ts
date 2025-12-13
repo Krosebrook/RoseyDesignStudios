@@ -13,7 +13,12 @@ import { PromptService } from '../services/prompts';
 
 export const useEditorState = () => {
   // Global Context
-  const { currentImage: initialImage, currentHistory: initialHistory, pendingInstruction, setPendingInstruction } = useApp();
+  const { 
+    currentImage: initialImage, 
+    currentHistory: initialHistory, 
+    pendingInstruction, 
+    setPendingInstruction 
+  } = useApp();
 
   // Core Hooks
   const historyManager = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
@@ -28,30 +33,28 @@ export const useEditorState = () => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Loading Cycle
   useLoadingCycle(loading, setLoading, EDIT_LOADING_MESSAGES, 'editing');
 
-  // Initialization & Reset Logic
+  // Initialization
   useEffect(() => {
     if (initialImage) {
-      if (initialHistory && initialHistory.length > 0) {
-        historyManager.resetHistory(initialImage.dataUrl, initialHistory);
-      } else {
-        historyManager.resetHistory(initialImage.dataUrl);
-      }
+      // Sync history with context
+      historyManager.resetHistory(initialImage.dataUrl, initialHistory);
       setEditPrompt('');
       markerManager.clearMarkers();
     }
-  }, [initialImage?.id, historyManager.resetHistory, initialHistory, markerManager.clearMarkers]);
+  }, [initialImage?.id]);
 
-  // Handle External Instructions (e.g., from "Add to Design")
+  // Handle instructions passed from other parts of the app (e.g. "Add to Design" button)
   const updatePromptWithInstruction = useCallback((instruction: string) => {
     setEditPrompt(prev => {
       const cleanPrev = prev.trim();
       if (!cleanPrev) return instruction;
+      // Smart punctuation appending
       const separator = cleanPrev.match(/[.!?,]$/) ? ' ' : '. ';
       return `${cleanPrev}${separator}${instruction}`;
     });
+    // Auto-switch to tools tab so user sees the instruction
     setActiveTab('tools');
   }, []);
 
@@ -60,9 +63,9 @@ export const useEditorState = () => {
       updatePromptWithInstruction(pendingInstruction);
       setPendingInstruction(null);
     }
-  }, [pendingInstruction, setPendingInstruction, updatePromptWithInstruction]);
+  }, [pendingInstruction]);
 
-  // --- ACTIONS ---
+  // --- IO HANDLERS ---
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,7 +75,6 @@ export const useEditorState = () => {
       reader.onloadend = () => {
         const result = reader.result as string;
         historyManager.setCurrentImage(result);
-        historyManager.resetHistory(result);
         markerManager.clearMarkers();
         setLoading({ isLoading: false, operation: 'idle', message: '' });
       };
@@ -82,10 +84,15 @@ export const useEditorState = () => {
 
   const handleCameraCapture = (imageData: string) => {
     historyManager.setCurrentImage(imageData);
-    historyManager.resetHistory(imageData);
     markerManager.clearMarkers();
     setShowCamera(false);
   };
+
+  const handleSaveProject = () => {
+    storageManager.saveProject(historyManager.currentImage, historyManager.history);
+  };
+
+  // --- EDITING LOGIC ---
 
   const handleEdit = async () => {
     const currentImg = historyManager.currentImage;
@@ -94,8 +101,7 @@ export const useEditorState = () => {
     setLoading({ isLoading: true, operation: 'editing', message: EDIT_LOADING_MESSAGES[0] });
 
     try {
-      // Build an intelligent prompt using the PromptService
-      // This allows us to inject marker data to help the AI understand where things are
+      // Use Service for prompt construction (Separation of Concerns)
       const enrichedPrompt = PromptService.buildEditPrompt(editPrompt, markerManager.markers);
 
       const newImageData = await editGardenImage(currentImg, enrichedPrompt);
@@ -118,25 +124,7 @@ export const useEditorState = () => {
     }
   };
 
-  const handleSaveProject = () => {
-    storageManager.saveProject(historyManager.currentImage, historyManager.history);
-  };
-
-  const handleUndo = useCallback(() => {
-    if (historyManager.canUndo) {
-      historyManager.undo();
-      markerManager.clearMarkers();
-    }
-  }, [historyManager.canUndo, historyManager.undo, markerManager.clearMarkers]);
-
-  const handleRedo = useCallback(() => {
-    if (historyManager.canRedo) {
-      historyManager.redo();
-      markerManager.clearMarkers();
-    }
-  }, [historyManager.canRedo, historyManager.redo, markerManager.clearMarkers]);
-
-  // --- DRAG AND DROP ---
+  // --- DRAG & DROP LOGIC ---
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -153,6 +141,7 @@ export const useEditorState = () => {
       const xPercent = (x / rect.width) * 100;
       const yPercent = (y / rect.height) * 100;
 
+      // Convert coords to natural language description
       const location = getPositionDescription(x, y, rect.width, rect.height);
       const instruction = `Add ${plantName} ${location}`;
       
@@ -161,8 +150,8 @@ export const useEditorState = () => {
     }
   };
 
+  // Facade Return
   return {
-    // State
     currentImage: historyManager.currentImage,
     history: historyManager.history,
     markers: markerManager.markers,
@@ -179,17 +168,15 @@ export const useEditorState = () => {
     saveError: storageManager.error,
     lastSaved: storageManager.lastSaved,
     
-    // Actions
     handleFileUpload,
     handleCameraCapture,
     handleEdit,
     handleSaveProject,
-    handleUndo,
-    handleRedo,
+    handleUndo: historyManager.undo,
+    handleRedo: historyManager.redo,
     handleDrop,
     updatePromptWithInstruction,
     
-    // Refs & Managers
     fileInputRef,
     markerManager,
     historyManager

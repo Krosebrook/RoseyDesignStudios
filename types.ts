@@ -1,5 +1,6 @@
 
 
+
 export interface GeneratedImage {
   id: string;
   dataUrl: string; // Base64 data URL
@@ -39,7 +40,7 @@ export type SunlightRequirement = 'Full Sun' | 'Partial Shade' | 'Full Shade';
 export type WaterRequirement = 'Drought-tolerant' | 'Moderate' | 'High';
 export type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
-export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture';
+export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture' | 'Feature';
 
 export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical' | 'Formal' | 'Woodland';
 

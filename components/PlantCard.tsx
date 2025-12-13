@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download, CheckCircle2, Armchair, Droplet, Settings2 } from 'lucide-react';
+import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download, CheckCircle2, Armchair, Droplet, Settings2, Flower } from 'lucide-react';
 import { createDragGhost } from '../utils/ui';
 
 interface PlantCardProps {
@@ -187,7 +187,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
         )}
 
         {/* Category Badges */}
-        {plant.category === 'Plant' && plant.water && (
+        {(plant.category === 'Plant' || plant.category === 'Feature') && plant.water && (
             <div className="absolute top-2 right-2 z-10 pointer-events-none">
                 <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-md bg-white/90 shadow-sm ${
                     plant.water === 'High' ? 'text-blue-700' : 
@@ -198,7 +198,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
             </div>
         )}
 
-        {plant.category !== 'Plant' && (
+        {plant.category !== 'Plant' && plant.category !== 'Feature' && (
             <div className="absolute top-2 right-2 z-10 pointer-events-none">
                  <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full backdrop-blur-md bg-white/90 shadow-sm text-stone-700 flex items-center gap-1">
                     {plant.category === 'Furniture' ? <Armchair size={10} /> : <Droplet size={10} />}
@@ -278,7 +278,7 @@ export const PlantCard: React.FC<PlantCardProps> = ({
           )}
         </div>
         
-        {plant.category === 'Plant' && plant.sunlight && plant.water && plant.seasons ? (
+        {(plant.category === 'Plant' || plant.category === 'Feature') && plant.sunlight && plant.water && plant.seasons ? (
             <div className="space-y-2 pt-4 border-t border-stone-100 text-xs mt-auto">
               <div className="flex items-center gap-2 text-stone-600">
                 <Sun size={14} className="text-amber-500 shrink-0" />

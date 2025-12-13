@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useEditorState } from '../hooks/useEditorState';
 import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
@@ -7,10 +7,12 @@ import { CameraModal } from './CameraModal';
 import { Button } from './common/UI';
 import { Save, Check, Clock, AlertCircle } from 'lucide-react';
 import { PLANTS } from '../data/plants';
+import { Plant } from '../types';
 
 export const Editor: React.FC = () => {
   const editor = useEditorState();
   const [plantSearch, setPlantSearch] = React.useState('');
+  const [customItems, setCustomItems] = useState<Plant[]>([]);
 
   // Keyboard shortcuts moved to top level effect in Editor
   useEffect(() => {
@@ -30,7 +32,13 @@ export const Editor: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [editor.handleUndo, editor.handleRedo]);
 
-  const filteredPlants = PLANTS.filter(p => 
+  const handleAddCustomItem = (plant: Plant) => {
+    setCustomItems(prev => [plant, ...prev]);
+  };
+
+  const allPlants = [...customItems, ...PLANTS];
+  
+  const filteredPlants = allPlants.filter(p => 
     p.name.toLowerCase().includes(plantSearch.toLowerCase())
   );
 
@@ -89,7 +97,8 @@ export const Editor: React.FC = () => {
             e.dataTransfer.setData('plantName', name);
             e.dataTransfer.effectAllowed = 'copy';
           }}
-          onAddToDesign={(name) => editor.updatePromptWithInstruction(`Add ${name}`)}
+          onAddToDesign={(name) => editor.updatePromptWithInstruction(name.startsWith('Add') ? name : `Add ${name}`)}
+          onAddCustomItem={handleAddCustomItem}
           onOpenCamera={() => editor.setShowCamera(true)}
         />
         

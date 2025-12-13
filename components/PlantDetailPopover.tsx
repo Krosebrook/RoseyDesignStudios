@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Plant } from '../types';
-import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet, PlusCircle, Settings2, X } from 'lucide-react';
+import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet, PlusCircle, Settings2, X, Flower } from 'lucide-react';
 import { GENERATION_STYLES, GENERATION_LIGHTING } from '../data/constants';
 
 interface PlantDetailPopoverProps {
@@ -101,6 +101,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
         <div className="bg-primary-50 p-2 rounded-full text-primary-600">
            {plant.category === 'Furniture' ? <Armchair size={18} /> : 
             plant.category === 'Water Feature' ? <Droplet size={18} /> : 
+            plant.category === 'Feature' ? <Flower size={18} /> :
             <Sprout size={18} />}
         </div>
       </div>
@@ -196,7 +197,7 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
       </div>
       
       {/* Care Requirements Section */}
-      {plant.category === 'Plant' && plant.sunlight && plant.water && plant.seasons ? (
+      {(plant.category === 'Plant' || plant.category === 'Feature') && plant.sunlight && plant.water && plant.seasons ? (
           <div className="mt-4 pt-4 border-t border-stone-100">
             <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Sprout size={12} className="text-primary-500" /> 

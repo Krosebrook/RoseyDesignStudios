@@ -65,6 +65,7 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
             >
               <option value="All">All Items</option>
               <option value="Plant">Plants</option>
+              <option value="Feature">Garden Features</option>
               <option value="Furniture">Furniture</option>
               <option value="Water Feature">Water Features</option>
             </select>

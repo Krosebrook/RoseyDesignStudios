@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AppMode, SavedDesign } from '../types';
-import { ArrowRight, Wand2, Upload, BookOpen, History, PlayCircle } from 'lucide-react';
+import { ArrowRight, Wand2, Upload, BookOpen, History, PlayCircle, Trash2 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 export const Hero: React.FC = () => {
@@ -18,6 +18,7 @@ export const Hero: React.FC = () => {
         }
       } catch (e) {
         console.error("Failed to parse saved design", e);
+        localStorage.removeItem('dreamGarden_saved');
       }
     }
   }, []);
@@ -25,6 +26,15 @@ export const Hero: React.FC = () => {
   const handleResume = () => {
     if (savedDesign) {
       handleResumeDesign(savedDesign);
+    }
+  };
+
+  const handleDiscard = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Simple confirmation to prevent accidental deletion
+    if (window.confirm("Discard your saved design? This cannot be undone.")) {
+        localStorage.removeItem('dreamGarden_saved');
+        setSavedDesign(null);
     }
   };
 
@@ -44,12 +54,13 @@ export const Hero: React.FC = () => {
 
       {/* Resume Banner if available */}
       {savedDesign && (
-        <div className="w-full max-w-2xl mb-8 animate-fade-in">
+        <div className="w-full max-w-2xl mb-8 animate-fade-in relative group">
            <button 
              onClick={handleResume}
-             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-2 rounded-2xl shadow-xl flex items-center justify-between group transition-all border border-stone-700 hover:border-stone-500 overflow-hidden"
+             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-2 rounded-2xl shadow-xl flex items-center justify-between transition-all border border-stone-700 hover:border-stone-500 overflow-hidden pr-14"
+             title="Resume your last editing session"
            >
-              <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                  <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-stone-800 flex-shrink-0 border border-white/10">
                     <img 
                       src={savedDesign.currentImage} 
@@ -60,19 +71,28 @@ export const Hero: React.FC = () => {
                          <History size={20} className="text-white drop-shadow-md" />
                     </div>
                  </div>
-                 <div className="text-left py-2">
-                    <p className="font-bold text-lg flex items-center gap-2">
-                        Resume Previous Design
-                        <span className="bg-primary-600 text-xs px-2 py-0.5 rounded-full">Autosave</span>
+                 <div className="text-left py-2 min-w-0">
+                    <p className="font-bold text-lg flex items-center gap-2 text-white truncate">
+                        Resume Design
+                        <span className="bg-primary-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">Saved</span>
                     </p>
-                    <p className="text-xs text-stone-400 mt-1">
-                        Last edited {new Date(savedDesign.timestamp).toLocaleDateString()} at {new Date(savedDesign.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <p className="text-xs text-stone-400 mt-1 truncate">
+                        {new Date(savedDesign.timestamp).toLocaleDateString()} • {new Date(savedDesign.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </p>
                  </div>
               </div>
-              <div className="mr-4 bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors group-hover:scale-110">
+              <div className="mr-2 bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors group-hover:scale-110 flex-shrink-0">
                  <PlayCircle size={24} className="text-primary-400" />
               </div>
+           </button>
+           
+           {/* Discard Button */}
+           <button
+             onClick={handleDiscard}
+             className="absolute top-1/2 -translate-y-1/2 right-4 p-2 text-stone-500 hover:text-red-400 hover:bg-white/10 rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100"
+             title="Discard saved design"
+           >
+             <Trash2 size={18} />
            </button>
         </div>
       )}
