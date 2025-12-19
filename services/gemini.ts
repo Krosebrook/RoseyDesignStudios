@@ -31,24 +31,29 @@ async function safeExecute<T>(operation: () => Promise<T>, fallbackMessage: stri
 }
 
 // --- IMAGEN ---
+// Added explicit <string> generic to ensure proper type inference in components using this method
 export const generateHighQualityImage = (prompt: string, aspectRatio: AspectRatio = '1:1') => 
-  safeExecute(() => ImagingService.generateHighQualityImage(prompt, aspectRatio), "Failed to generate image");
+  safeExecute<string>(() => ImagingService.generateHighQualityImage(prompt, aspectRatio), "Failed to generate image");
 
 // --- EDITING ---
+// Added explicit <string> generic
 export const editGardenImage = (base64Image: string, prompt: string) => 
-  safeExecute(() => ImagingService.editGardenImage(base64Image, prompt), "Failed to edit image");
+  safeExecute<string>(() => ImagingService.editGardenImage(base64Image, prompt), "Failed to edit image");
 
 // --- VIDEO ---
+// Added explicit <string> generic
 export const generateGardenVideo = (image: string, prompt: string, aspectRatio: '16:9' | '9:16' = '16:9') => 
-  safeExecute(() => VideoService.generateGardenVideo(image, prompt, aspectRatio), "Failed to generate video");
+  safeExecute<string>(() => VideoService.generateGardenVideo(image, prompt, aspectRatio), "Failed to generate video");
 
 // --- ANALYSIS ---
+// Added explicit <string> generic
 export const analyzeGardenImage = (image: string, question: string) => 
-  safeExecute(() => AnalysisService.analyzeGardenImage(image, question), "Analysis failed");
+  safeExecute<string>(() => AnalysisService.analyzeGardenImage(image, question), "Analysis failed");
 
 // --- SEARCH ---
+// Added explicit generic for search result object structure
 export const searchGardeningTips = (query: string) => 
-  safeExecute(() => AnalysisService.searchGardeningTips(query), "Search failed");
+  safeExecute<{text: string, sources: any[]}>(() => AnalysisService.searchGardeningTips(query), "Search failed");
 
 // --- TIPS ---
 export const getSeasonalGardeningTip = AdvisoryService.getSeasonalGardeningTip;

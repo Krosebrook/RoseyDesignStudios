@@ -42,6 +42,15 @@ export const Editor: React.FC = () => {
     p.name.toLowerCase().includes(plantSearch.toLowerCase())
   );
 
+  const handleSaveWithConfirmation = () => {
+    const confirmSave = window.confirm(
+      "Save your current garden design? This will update your local save file and overwrite any previous version of this project."
+    );
+    if (confirmSave) {
+      editor.handleSaveProject();
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
       {/* HEADER & SAVE */}
@@ -53,7 +62,7 @@ export const Editor: React.FC = () => {
         
         <div className="md:ml-auto md:relative z-10 flex flex-col items-end gap-1">
            <Button 
-             onClick={editor.handleSaveProject}
+             onClick={handleSaveWithConfirmation}
              disabled={!editor.currentImage || editor.saveStatus === 'saving'}
              variant={editor.saveStatus === 'saved' ? 'primary' : 'secondary'}
              className={editor.saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : 'bg-stone-900 hover:bg-stone-800'}

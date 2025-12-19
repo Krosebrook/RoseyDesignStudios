@@ -50,6 +50,10 @@ export const useEditorState = () => {
     setEditPrompt(prev => {
       const cleanPrev = prev.trim();
       if (!cleanPrev) return instruction;
+      
+      // If the instruction is already there (exact match), don't duplicate
+      if (cleanPrev.includes(instruction)) return prev;
+
       // Smart punctuation appending
       const separator = cleanPrev.match(/[.!?,]$/) ? ' ' : '. ';
       return `${cleanPrev}${separator}${instruction}`;
@@ -143,7 +147,7 @@ export const useEditorState = () => {
 
       // Convert coords to natural language description
       const location = getPositionDescription(x, y, rect.width, rect.height);
-      const instruction = `Add ${plantName} ${location}`;
+      const instruction = `Add ${plantName} here ${location}`;
       
       updatePromptWithInstruction(instruction);
       markerManager.addMarker(plantName, xPercent, yPercent, instruction);

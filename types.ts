@@ -46,7 +46,7 @@ export interface Plant {
   scientificName: string; // Used as "Material" or "Type" for non-plants
   description: string;
   sunlight?: SunlightRequirement;
-  water?: WaterRequirement;
+  water: WaterRequirement; // Changed to required as per request
   seasons?: Season[];
   imageUrl: string;
   category: ItemCategory;

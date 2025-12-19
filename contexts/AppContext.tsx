@@ -1,7 +1,15 @@
+
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { AppMode, GeneratedImage, SavedDesign } from '../types';
 
-interface AppState {
+interface AIState {
+  generatedImages: Record<string, string[]>;
+  generatingIds: Set<string>;
+  enhancedDescriptions: Record<string, string>;
+  enhancingDescIds: Set<string>;
+}
+
+interface AppState extends AIState {
   mode: AppMode;
   currentImage: GeneratedImage | null;
   currentHistory: string[] | undefined;
@@ -15,6 +23,12 @@ interface AppContextType extends AppState {
   handleImageGenerated: (img: GeneratedImage) => void;
   handleResumeDesign: (saved: SavedDesign) => void;
   handleAddToDesign: (plantName: string) => void;
+  
+  // AI Setters
+  setGeneratedImages: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+  setGeneratingIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+  setEnhancedDescriptions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setEnhancingDescIds: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -25,15 +39,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentHistory, setCurrentHistory] = useState<string[] | undefined>(undefined);
   const [pendingInstruction, setPendingInstruction] = useState<string | null>(null);
 
+  // Global AI State
+  const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
+  const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
+  const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, string>>({});
+  const [enhancingDescIds, setEnhancingDescIds] = useState<Set<string>>(new Set());
+
   const handleImageGenerated = useCallback((img: GeneratedImage) => {
     setCurrentImage(img);
-    setCurrentHistory(undefined); // Reset history when new image generated
-    // Optionally auto-switch to Edit mode, or stay in Generate to see result
+    setCurrentHistory(undefined);
   }, []);
 
   const handleResumeDesign = useCallback((saved: SavedDesign) => {
     const recoveredImage: GeneratedImage = {
-      id: crypto.randomUUID(), // New ID to force component refresh
+      id: crypto.randomUUID(),
       dataUrl: saved.currentImage,
       prompt: 'Resumed Design',
       timestamp: saved.timestamp
@@ -53,12 +72,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     currentImage,
     currentHistory,
     pendingInstruction,
+    generatedImages,
+    generatingIds,
+    enhancedDescriptions,
+    enhancingDescIds,
     setMode,
     setCurrentImage,
     setPendingInstruction,
     handleImageGenerated,
     handleResumeDesign,
-    handleAddToDesign
+    handleAddToDesign,
+    setGeneratedImages,
+    setGeneratingIds,
+    setEnhancedDescriptions,
+    setEnhancingDescIds
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

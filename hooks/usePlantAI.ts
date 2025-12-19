@@ -3,6 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Plant } from '../types';
 import { generatePlantImage, generatePlantDescription } from '../services/gemini';
 import { createLogger } from '../utils/logger';
+import { useApp } from '../contexts/AppContext';
 
 const logger = createLogger('usePlantAI');
 const MAX_CONCURRENT_REQUESTS = 3;
@@ -13,21 +14,23 @@ interface QueueItem {
 }
 
 export const usePlantAI = () => {
-    // Key: Plant ID, Value: Array of base64 image strings
-    const [generatedImages, setGeneratedImages] = useState<Record<string, string[]>>({});
-    const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
-    const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, string>>({});
-    const [enhancingDescIds, setEnhancingDescIds] = useState<Set<string>>(new Set());
+    const { 
+        generatedImages, setGeneratedImages,
+        generatingIds, setGeneratingIds,
+        enhancedDescriptions, setEnhancedDescriptions,
+        enhancingDescIds, setEnhancingDescIds
+    } = useApp();
 
-    // Progress State
+    // Progress State for UI feedback
     const [pendingCount, setPendingCount] = useState(0);
 
-    // Queue system
+    // Queue system logic remains local to the hook instance to manage its own lifecycle
     const queueRef = useRef<QueueItem[]>([]);
     const activeRequestsRef = useRef(0);
     const mountedRef = useRef(true);
 
     useEffect(() => {
+      mountedRef.current = true;
       return () => { mountedRef.current = false; };
     }, []);
 
@@ -40,7 +43,6 @@ export const usePlantAI = () => {
     const processQueue = useCallback(async () => {
       if (!mountedRef.current) return;
       
-      // Update count
       updatePendingCount();
 
       if (activeRequestsRef.current >= MAX_CONCURRENT_REQUESTS) return;
@@ -52,7 +54,6 @@ export const usePlantAI = () => {
       activeRequestsRef.current++;
       updatePendingCount();
       
-      // Execute
       try {
         await item.task();
       } catch (e) {
@@ -60,7 +61,7 @@ export const usePlantAI = () => {
       } finally {
         activeRequestsRef.current--;
         updatePendingCount();
-        processQueue(); // Check for next item
+        processQueue(); 
       }
     }, [updatePendingCount]);
 
@@ -71,14 +72,12 @@ export const usePlantAI = () => {
     }, [processQueue, updatePendingCount]);
 
     const generateImage = useCallback(async (plant: Plant, style?: string, lighting?: string) => {
-        // Prevent duplicate queuing for the same plant if already generating
         if (generatingIds.has(plant.id)) return;
 
         setGeneratingIds(prev => new Set(prev).add(plant.id));
         
         addToQueue(plant.id, async () => {
           try {
-              // Pass the full plant object to use metadata (sun, water, season) in generation
               const result = await generatePlantImage(plant, style, lighting);
               if (result.success && result.data && mountedRef.current) {
                 setGeneratedImages(prev => {
@@ -87,7 +86,7 @@ export const usePlantAI = () => {
                 });
               }
           } catch (err) {
-              logger.error("Failed to generate plant image", err);
+              logger.error(`Failed to generate plant image for ${plant.name}`, err);
           } finally {
               if (mountedRef.current) {
                 setGeneratingIds(prev => {
@@ -98,7 +97,7 @@ export const usePlantAI = () => {
               }
           }
         });
-    }, [generatingIds, addToQueue]);
+    }, [generatingIds, addToQueue, setGeneratedImages, setGeneratingIds]);
 
     const enhanceDescription = useCallback(async (plant: Plant) => {
         if (enhancingDescIds.has(plant.id)) return;
@@ -112,7 +111,7 @@ export const usePlantAI = () => {
                 setEnhancedDescriptions(prev => ({ ...prev, [plant.id]: result.data! }));
               }
           } catch (err) {
-              logger.error("Failed to generate description", err);
+              logger.error(`Failed to enhance description for ${plant.name}`, err);
           } finally {
               if (mountedRef.current) {
                 setEnhancingDescIds(prev => {
@@ -123,7 +122,7 @@ export const usePlantAI = () => {
               }
           }
         });
-    }, [enhancingDescIds, addToQueue]);
+    }, [enhancingDescIds, addToQueue, setEnhancedDescriptions, setEnhancingDescIds]);
 
     return {
         generatedImages,

@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plant } from '../types';
+import { PLANTS } from '../data/plants';
 import { usePlantFiltering } from '../hooks/usePlantFiltering';
 import { usePlantAI } from '../hooks/usePlantAI';
 import { useApp } from '../contexts/AppContext';
@@ -29,6 +30,18 @@ export const PlantLibrary: React.FC = () => {
     pendingCount
   } = usePlantAI();
 
+  // Automatically trigger high-resolution generation for plants missing AI visuals on mount
+  useEffect(() => {
+    PLANTS.forEach(plant => {
+      const hasGeneratedImage = generatedImages[plant.id] && generatedImages[plant.id].length > 0;
+      const isCurrentlyProcessing = generatingIds.has(plant.id);
+      
+      if (!hasGeneratedImage && !isCurrentlyProcessing) {
+        generateImage(plant);
+      }
+    });
+  }, [generateImage, generatedImages, generatingIds]);
+
   const handleGenerateAIImage = (e?: React.MouseEvent, plant?: Plant, style?: string, lighting?: string) => {
     if (e) {
       e.preventDefault();
@@ -41,7 +54,6 @@ export const PlantLibrary: React.FC = () => {
   };
   
   const handleGenerateAll = () => {
-    // Trigger generation for all visible plants that aren't already generating
     filteredPlants.forEach(plant => {
       if (!generatingIds.has(plant.id)) {
         generateImage(plant);
@@ -87,7 +99,7 @@ export const PlantLibrary: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6 w-full relative">
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-bold text-stone-800 mb-2">Plant Database</h2>
-        <p className="text-stone-600">Explore our curated collection of garden favorites.</p>
+        <p className="text-stone-600">Explore our curated collection of garden favorites with unique AI visuals.</p>
       </div>
 
       <SeasonalSpotlight 
@@ -99,14 +111,15 @@ export const PlantLibrary: React.FC = () => {
 
       {/* Progress Bar for Batch Generation */}
       {isBatchGenerating && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-4 border border-primary-100 animate-fade-in-up">
-              <div className="flex items-center gap-3">
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur shadow-2xl rounded-full px-6 py-4 flex items-center gap-4 border border-primary-100 animate-fade-in-up">
+              <div className="flex items-center gap-4">
                   <div className="relative">
-                     <Loader2 size={24} className="text-primary-600 animate-spin" />
+                     <div className="absolute inset-0 bg-primary-200 rounded-full animate-ping opacity-25"></div>
+                     <Loader2 size={24} className="text-primary-600 animate-spin relative" />
                   </div>
                   <div>
-                      <p className="text-sm font-bold text-stone-800">Generating Images...</p>
-                      <p className="text-xs text-stone-500">{pendingCount} remaining</p>
+                      <p className="text-sm font-bold text-stone-800">Visualizing Library...</p>
+                      <p className="text-[10px] text-stone-500 font-medium uppercase tracking-wider">{pendingCount} unique variations pending</p>
                   </div>
               </div>
           </div>
@@ -121,7 +134,6 @@ export const PlantLibrary: React.FC = () => {
             />
         </div>
         
-        {/* Generate All Button */}
         {filteredPlants.length > 0 && (
             <div className="flex-shrink-0 md:mt-0">
                <button 
@@ -130,18 +142,13 @@ export const PlantLibrary: React.FC = () => {
                   className={`w-full md:w-auto px-5 py-3 rounded-2xl font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
                     isBatchGenerating 
                         ? 'bg-stone-100 text-stone-400 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 hover:shadow-lg text-white'
+                        : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 hover:shadow-lg text-white'
                   }`}
-                  title="Generate AI images for all visible plants in the list"
+                  title="Generate high-resolution AI visuals for all visible items"
                >
                   {isBatchGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                  {isBatchGenerating ? 'Processing...' : 'Generate All Images'}
+                  {isBatchGenerating ? 'Processing...' : 'Visualize All'}
                </button>
-               {!isBatchGenerating && (
-                 <p className="text-[10px] text-stone-500 text-center mt-1">
-                   Generating {filteredPlants.length} plants
-                 </p>
-               )}
             </div>
         )}
       </div>
