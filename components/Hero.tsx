@@ -31,7 +31,6 @@ export const Hero: React.FC = () => {
 
   const handleDiscard = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Simple confirmation to prevent accidental deletion
     if (window.confirm("Discard your saved design? This cannot be undone.")) {
         localStorage.removeItem('dreamGarden_saved');
         setSavedDesign(null);
@@ -52,47 +51,46 @@ export const Hero: React.FC = () => {
         </p>
       </div>
 
-      {/* Resume Banner if available */}
+      {/* Resume Banner */}
       {savedDesign && (
-        <div className="w-full max-w-2xl mb-8 animate-fade-in relative group">
+        <div className="w-full max-w-2xl mb-12 animate-fade-in relative group">
            <button 
              onClick={handleResume}
-             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-2 rounded-2xl shadow-xl flex items-center justify-between transition-all border border-stone-700 hover:border-stone-500 overflow-hidden pr-14"
+             className="w-full bg-stone-900 hover:bg-stone-800 text-white p-2 rounded-[2rem] shadow-2xl flex items-center justify-between transition-all border border-stone-700 hover:border-stone-500 overflow-hidden pr-12"
              title="Resume your last editing session"
            >
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-stone-800 flex-shrink-0 border border-white/10">
+              <div className="flex items-center gap-5 flex-1 min-w-0">
+                 <div className="relative w-24 h-24 rounded-[1.5rem] overflow-hidden bg-stone-800 flex-shrink-0 border border-white/10 ml-1">
                     <img 
                       src={savedDesign.currentImage} 
                       alt="Last design" 
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                         <History size={20} className="text-white drop-shadow-md" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-colors">
+                         <History size={24} className="text-white drop-shadow-lg" />
                     </div>
                  </div>
                  <div className="text-left py-2 min-w-0">
-                    <p className="font-bold text-lg flex items-center gap-2 text-white truncate">
-                        Resume Design
-                        <span className="bg-primary-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">Saved</span>
-                    </p>
-                    <p className="text-xs text-stone-400 mt-1 truncate">
-                        {new Date(savedDesign.timestamp).toLocaleDateString()} • {new Date(savedDesign.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <div className="flex items-center gap-3 mb-1">
+                        <p className="font-bold text-xl text-white truncate">Resume Design</p>
+                        <span className="bg-primary-500 text-[10px] px-2.5 py-1 rounded-full uppercase tracking-widest font-black shadow-lg">Draft</span>
+                    </div>
+                    <p className="text-xs text-stone-400 font-medium">
+                        Modified {new Date(savedDesign.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at {new Date(savedDesign.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                  </div>
               </div>
-              <div className="mr-2 bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors group-hover:scale-110 flex-shrink-0">
-                 <PlayCircle size={24} className="text-primary-400" />
+              <div className="mr-2 bg-white/10 p-4 rounded-full group-hover:bg-white/20 transition-all group-hover:scale-110 flex-shrink-0 border border-white/5">
+                 <PlayCircle size={28} className="text-primary-400" />
               </div>
            </button>
            
-           {/* Discard Button */}
            <button
              onClick={handleDiscard}
-             className="absolute top-1/2 -translate-y-1/2 right-4 p-2 text-stone-500 hover:text-red-400 hover:bg-white/10 rounded-full transition-colors z-20 opacity-0 group-hover:opacity-100"
+             className="absolute top-1/2 -translate-y-1/2 right-4 p-2.5 text-stone-500 hover:text-red-400 hover:bg-white/10 rounded-full transition-all z-20 opacity-0 group-hover:opacity-100 scale-90 hover:scale-100"
              title="Discard saved design"
            >
-             <Trash2 size={18} />
+             <Trash2 size={20} />
            </button>
         </div>
       )}

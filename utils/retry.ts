@@ -7,36 +7,42 @@ interface RetryOptions {
   retries?: number;
   backoff?: number;
   factor?: number;
+  jitter?: boolean;
 }
 
+/**
+ * Higher-order function to wrap async operations with exponential backoff.
+ */
 export async function withRetry<T>(
   fn: () => Promise<T>, 
   options: RetryOptions = {}
 ): Promise<T> {
-  const { retries = 3, backoff = 1000, factor = 2 } = options;
+  const { retries = 3, backoff = 1000, factor = 2, jitter = true } = options;
   let attempt = 0;
 
-  while (attempt <= retries) {
+  while (true) {
     try {
       return await fn();
     } catch (error: any) {
       attempt++;
-      if (attempt > retries) {
+      
+      const isRetryable = attempt <= retries && 
+        !error.message?.includes('API key not valid') && 
+        !error.message?.includes('safety');
+
+      if (!isRetryable) {
         throw error;
       }
 
-      // Don't retry client-side validation errors (4xx mostly, but here generalized)
-      // In a real fetch wrapper, checking status codes 400-499 would be here.
-      if (error.message && error.message.includes('API Key not found')) {
-        throw error;
+      // Calculate wait time with optional jitter
+      let delay = backoff * Math.pow(factor, attempt - 1);
+      if (jitter) {
+        delay = delay * (0.8 + Math.random() * 0.4);
       }
 
-      const delay = backoff * Math.pow(factor, attempt - 1);
-      logger.warn(`Operation failed, retrying in ${delay}ms (Attempt ${attempt}/${retries})`, { error: error.message });
+      logger.warn(`Attempt ${attempt}/${retries} failed. Retrying in ${Math.round(delay)}ms...`, { error: error.message });
       
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
-  throw new Error('Unreachable');
 }

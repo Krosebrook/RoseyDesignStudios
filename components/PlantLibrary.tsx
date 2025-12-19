@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plant } from '../types';
 import { PLANTS } from '../data/plants';
 import { usePlantFiltering } from '../hooks/usePlantFiltering';
@@ -30,16 +30,23 @@ export const PlantLibrary: React.FC = () => {
     pendingCount
   } = usePlantAI();
 
-  // Automatically trigger high-resolution generation for plants missing AI visuals on mount
+  // Robustly trigger high-resolution generation for plants missing AI visuals on mount
+  const hasCheckedAutoVisuals = useRef(false);
   useEffect(() => {
+    if (hasCheckedAutoVisuals.current) return;
+    
+    let triggeredCount = 0;
     PLANTS.forEach(plant => {
       const hasGeneratedImage = generatedImages[plant.id] && generatedImages[plant.id].length > 0;
       const isCurrentlyProcessing = generatingIds.has(plant.id);
       
-      if (!hasGeneratedImage && !isCurrentlyProcessing) {
+      if (!hasGeneratedImage && !isCurrentlyProcessing && triggeredCount < 5) { // Throttle initial burst
         generateImage(plant);
+        triggeredCount++;
       }
     });
+    
+    hasCheckedAutoVisuals.current = true;
   }, [generateImage, generatedImages, generatingIds]);
 
   const handleGenerateAIImage = (e?: React.MouseEvent, plant?: Plant, style?: string, lighting?: string) => {
@@ -55,7 +62,8 @@ export const PlantLibrary: React.FC = () => {
   
   const handleGenerateAll = () => {
     filteredPlants.forEach(plant => {
-      if (!generatingIds.has(plant.id)) {
+      const hasImages = generatedImages[plant.id] && generatedImages[plant.id].length > 0;
+      if (!generatingIds.has(plant.id) && !hasImages) {
         generateImage(plant);
       }
     });
@@ -144,10 +152,10 @@ export const PlantLibrary: React.FC = () => {
                         ? 'bg-stone-100 text-stone-400 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 hover:shadow-lg text-white'
                   }`}
-                  title="Generate high-resolution AI visuals for all visible items"
+                  title="Generate high-resolution AI visuals for all missing items"
                >
                   {isBatchGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                  {isBatchGenerating ? 'Processing...' : 'Visualize All'}
+                  {isBatchGenerating ? 'Processing...' : 'Visualize Library'}
                </button>
             </div>
         )}

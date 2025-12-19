@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useImageHistory } from './useImageHistory';
 import { useMarkers } from './useMarkers';
 import { useProjectStorage } from './useProjectStorage';
@@ -10,9 +10,15 @@ import { EDIT_LOADING_MESSAGES } from '../data/constants';
 import { getPositionDescription } from '../utils/editor';
 import { LoadingState } from '../types';
 import { PromptService } from '../services/prompts';
+import { createLogger } from '../utils/logger';
 
+const logger = createLogger('EditorState');
+
+/**
+ * Main state orchestrator for the AI Garden Editor.
+ * Manages history, markers, AI interactions, and storage persistence.
+ */
 export const useEditorState = () => {
-  // Global Context
   const { 
     currentImage: initialImage, 
     currentHistory: initialHistory, 
@@ -20,117 +26,119 @@ export const useEditorState = () => {
     setPendingInstruction 
   } = useApp();
 
-  // Core Hooks
   const historyManager = useImageHistory(initialImage ? initialImage.dataUrl : null, initialHistory);
   const markerManager = useMarkers();
   const storageManager = useProjectStorage();
 
-  // Local State
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, operation: 'idle', message: '' });
   const [editPrompt, setEditPrompt] = useState('');
   const [activeTab, setActiveTab] = useState<'tools' | 'plants'>('tools');
   const [showCamera, setShowCamera] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useLoadingCycle(loading, setLoading, EDIT_LOADING_MESSAGES, 'editing');
 
-  // Initialization
+  // Synchronize with external image selection (e.g. from Home or Library)
   useEffect(() => {
-    if (initialImage) {
-      // Sync history with context
+    if (initialImage && initialImage.dataUrl !== historyManager.currentImage) {
       historyManager.resetHistory(initialImage.dataUrl, initialHistory);
-      setEditPrompt('');
       markerManager.clearMarkers();
+      setIsDirty(false);
     }
   }, [initialImage?.id]);
 
-  // Handle instructions passed from other parts of the app (e.g. "Add to Design" button)
+  // Track if changes have been made since last save
+  useEffect(() => {
+    if (storageManager.saveStatus === 'saved') {
+      setIsDirty(false);
+    } else if (historyManager.history.length > 1) {
+      setIsDirty(true);
+    }
+  }, [historyManager.currentImage, storageManager.saveStatus]);
+
+  /**
+   * Appends new instructions to the prompt with smart formatting.
+   */
   const updatePromptWithInstruction = useCallback((instruction: string) => {
     setEditPrompt(prev => {
       const cleanPrev = prev.trim();
       if (!cleanPrev) return instruction;
-      
-      // If the instruction is already there (exact match), don't duplicate
       if (cleanPrev.includes(instruction)) return prev;
 
-      // Smart punctuation appending
-      const separator = cleanPrev.match(/[.!?,]$/) ? ' ' : '. ';
-      return `${cleanPrev}${separator}${instruction}`;
+      const hasPunctuation = /[.!?,]$/.test(cleanPrev);
+      return `${cleanPrev}${hasPunctuation ? ' ' : '. '}${instruction}`;
     });
-    // Auto-switch to tools tab so user sees the instruction
     setActiveTab('tools');
   }, []);
 
+  // Handle incoming instructions from global state
   useEffect(() => {
     if (pendingInstruction) {
       updatePromptWithInstruction(pendingInstruction);
       setPendingInstruction(null);
     }
-  }, [pendingInstruction]);
+  }, [pendingInstruction, updatePromptWithInstruction, setPendingInstruction]);
 
-  // --- IO HANDLERS ---
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLoading({ isLoading: true, operation: 'uploading', message: 'Processing image...' });
+      setLoading({ isLoading: true, operation: 'uploading', message: 'Importing photo...' });
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
         historyManager.setCurrentImage(result);
         markerManager.clearMarkers();
         setLoading({ isLoading: false, operation: 'idle', message: '' });
+        setIsDirty(true);
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, [historyManager, markerManager]);
 
-  const handleCameraCapture = (imageData: string) => {
+  const handleCameraCapture = useCallback((imageData: string) => {
     historyManager.setCurrentImage(imageData);
     markerManager.clearMarkers();
     setShowCamera(false);
-  };
+    setIsDirty(true);
+  }, [historyManager, markerManager]);
 
-  const handleSaveProject = () => {
+  const handleSaveProject = useCallback(() => {
     storageManager.saveProject(historyManager.currentImage, historyManager.history);
-  };
+  }, [storageManager, historyManager]);
 
-  // --- EDITING LOGIC ---
-
-  const handleEdit = async () => {
+  const handleEdit = useCallback(async () => {
     const currentImg = historyManager.currentImage;
     if (!currentImg || !editPrompt.trim()) return;
 
     setLoading({ isLoading: true, operation: 'editing', message: EDIT_LOADING_MESSAGES[0] });
 
     try {
-      // Use Service for prompt construction (Separation of Concerns)
       const enrichedPrompt = PromptService.buildEditPrompt(editPrompt, markerManager.markers);
-
-      const newImageData = await editGardenImage(currentImg, enrichedPrompt);
+      const result = await editGardenImage(currentImg, enrichedPrompt);
       
-      if (newImageData.success && newImageData.data) {
-          historyManager.pushToHistory(newImageData.data);
-          setEditPrompt('');
-          markerManager.clearMarkers();
-          setLoading({ isLoading: false, operation: 'idle', message: '' });
-      } else {
-          throw new Error(newImageData.message || "Edit failed");
+      if (result.success === false) {
+          throw result.error;
       }
+
+      historyManager.pushToHistory(result.data);
+      setEditPrompt('');
+      markerManager.clearMarkers();
+      setLoading({ isLoading: false, operation: 'idle', message: '' });
+      setIsDirty(true);
     } catch (err: any) {
+      logger.error('Edit operation failed', err);
       setLoading({ 
         isLoading: false, 
         operation: 'idle', 
         message: '', 
-        error: err.message || 'Failed to edit image.' 
+        error: err.message || 'The AI could not process that request. Try a simpler prompt.' 
       });
     }
-  };
+  }, [editPrompt, historyManager, markerManager.markers]);
 
-  // --- DRAG & DROP LOGIC ---
-
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(false);
     
@@ -145,16 +153,17 @@ export const useEditorState = () => {
       const xPercent = (x / rect.width) * 100;
       const yPercent = (y / rect.height) * 100;
 
-      // Convert coords to natural language description
       const location = getPositionDescription(x, y, rect.width, rect.height);
-      const instruction = `Add ${plantName} here ${location}`;
+      const instruction = `Add ${plantName} ${location}`;
       
       updatePromptWithInstruction(instruction);
       markerManager.addMarker(plantName, xPercent, yPercent, instruction);
     }
-  };
+  }, [historyManager.currentImage, loading.isLoading, updatePromptWithInstruction, markerManager]);
 
-  // Facade Return
+  const handleUndo = useCallback(() => historyManager.undo(), [historyManager]);
+  const handleRedo = useCallback(() => historyManager.redo(), [historyManager]);
+
   return {
     currentImage: historyManager.currentImage,
     history: historyManager.history,
@@ -168,6 +177,7 @@ export const useEditorState = () => {
     setShowCamera,
     isDraggingOver,
     setIsDraggingOver,
+    isDirty,
     saveStatus: storageManager.saveStatus,
     saveError: storageManager.error,
     lastSaved: storageManager.lastSaved,
@@ -176,8 +186,8 @@ export const useEditorState = () => {
     handleCameraCapture,
     handleEdit,
     handleSaveProject,
-    handleUndo: historyManager.undo,
-    handleRedo: historyManager.redo,
+    handleUndo,
+    handleRedo,
     handleDrop,
     updatePromptWithInstruction,
     

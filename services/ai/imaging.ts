@@ -4,16 +4,21 @@ import { AspectRatio } from "../../types";
 import { cleanBase64, getMimeType } from "../../utils/image";
 import { BaseService } from "./base";
 
+/**
+ * ImagingService handles all visual generation and editing.
+ * Adheres to GenAI guidelines by prioritizing gemini-2.5-flash-image for editing/variation
+ * and imagen-4.0-generate-001 for explicit high-fidelity generation.
+ */
 export class ImagingService extends BaseService {
+  
   /**
-   * Generates images using gemini-2.5-flash-image by default as per guidelines.
-   * Faster and supports more flexible prompting.
+   * Generates images using gemini-2.5-flash-image (default model).
    */
   static async generateImage(prompt: string, aspectRatio: AspectRatio = '1:1'): Promise<string> {
     return this.execute("FlashImageGeneration", async (ai) => {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `${prompt}, photorealistic garden design, high resolution`,
+        contents: `${prompt}, photorealistic landscape design, architectural render style, 8k resolution`,
         config: {
           imageConfig: { aspectRatio }
         }
@@ -25,22 +30,22 @@ export class ImagingService extends BaseService {
     });
   }
 
-  // Added missing method called by WorkflowService
   /**
    * Alias for generating a plant variation using the standard flash image model.
    */
   static async generatePlantVariation(prompt: string): Promise<string> {
+    // Variations are best handled by the fast, creative flash-image model
     return this.generateImage(prompt);
   }
 
   /**
-   * Generates high-fidelity images using Imagen 4.0 for explicit quality requests.
+   * Generates high-fidelity images using Imagen 4.0.
    */
   static async generateHighQualityImage(prompt: string, aspectRatio: AspectRatio = '1:1'): Promise<string> {
     return this.execute("ImagenGeneration", async (ai) => {
       const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
-        prompt: `${prompt}, award winning landscape design, highly detailed, 8k`,
+        prompt: `${prompt}, award winning garden photography, highly detailed, 8k, professional lighting`,
         config: {
           numberOfImages: 1,
           outputMimeType: 'image/jpeg',
@@ -55,7 +60,7 @@ export class ImagingService extends BaseService {
   }
 
   /**
-   * Performs semantic edits on existing garden images using Gemini 2.5 Flash Image.
+   * Performs semantic edits on existing garden images.
    */
   static async editGardenImage(base64Image: string, prompt: string): Promise<string> {
     return this.execute("ImageEditing", async (ai) => {
@@ -67,7 +72,7 @@ export class ImagingService extends BaseService {
         contents: {
           parts: [
             { inlineData: { data, mimeType } },
-            { text: prompt },
+            { text: `Edit this garden image: ${prompt}. Maintain consistent lighting and perspective.` },
           ],
         },
         config: { 

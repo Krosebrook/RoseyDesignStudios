@@ -16,16 +16,26 @@ export enum AppMode {
   VOICE = 'VOICE'
 }
 
-export type OperationType = 'idle' | 'generating' | 'editing' | 'uploading' | 'analyzing' | 'connecting';
+export type OperationType = 
+  | 'idle' 
+  | 'generating' 
+  | 'editing' 
+  | 'uploading' 
+  | 'analyzing' 
+  | 'connecting' 
+  | 'retrying';
 
 export interface LoadingState {
   isLoading: boolean;
   operation: OperationType;
   message: string;
   error?: string | null;
+  retryCount?: number;
 }
 
-// Improved Result type with discriminated union for better type narrowing
+/**
+ * Standard Result envelope for all service operations
+ */
 export type Result<T> = 
   | { success: true; data: T; message?: string }
   | { success: false; error: Error; message: string; data?: undefined };
@@ -43,10 +53,10 @@ export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical
 export interface Plant {
   id: string;
   name: string;
-  scientificName: string; // Used as "Material" or "Type" for non-plants
+  scientificName: string; 
   description: string;
   sunlight?: SunlightRequirement;
-  water: WaterRequirement; // Changed to required as per request
+  water: WaterRequirement;
   seasons?: Season[];
   imageUrl: string;
   category: ItemCategory;
@@ -57,4 +67,15 @@ export interface SavedDesign {
   currentImage: string;
   history: string[];
   timestamp: number;
+}
+
+/**
+ * Domain-level state for AI Workflows
+ */
+export interface AIWorkflowState {
+  generatedImages: Record<string, string[]>;
+  generatingIds: Set<string>;
+  enhancedDescriptions: Record<string, string>;
+  enhancingDescIds: Set<string>;
+  activeVideoId?: string;
 }

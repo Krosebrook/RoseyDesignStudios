@@ -7,25 +7,31 @@ import { AppError } from "../../utils/errors";
 
 const logger = createLogger('AI:Video');
 
+/**
+ * Orchestrates Veo video generation.
+ * Strictly implements the project selection check and billing requirements.
+ */
 export const generateGardenVideo = async (image: string, prompt: string, aspectRatio: '16:9' | '9:16' = '16:9'): Promise<string> => {
-  // 1. Check if user has a paid key selected (Mandatory for Veo)
+  // 1. Mandatory Pre-flight check for Paid API Key (Veo requirement)
   const hasKey = await (window as any).aistudio.hasSelectedApiKey();
   if (!hasKey) {
-    throw new AppError("A paid API key is required for video generation.", "KEY_REQUIRED");
+    throw new AppError("A paid API key from a billing-enabled project is required.", "KEY_REQUIRED");
   }
 
+  // 2. Execute generation with specialized error handling for keys
   return withRetry(async () => {
-    logger.info("Starting Veo Generation", { aspectRatio });
-    // Always use a fresh instance to catch the latest injected key
+    logger.info("Executing Veo Video Generation", { aspectRatio });
+    
+    // Fresh AI instance ensures current session key is used
     const ai = getAI();
-    const cleanData = cleanBase64(image);
+    const data = cleanBase64(image);
     const mimeType = getMimeType(image);
 
     try {
       let operation = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
-        prompt: prompt || "A cinematic garden walkthrough, flowers swaying gently in the breeze",
-        image: { imageBytes: cleanData, mimeType },
+        prompt: prompt || "A peaceful garden scene where flowers sway gently in the breeze.",
+        image: { imageBytes: data, mimeType },
         config: { 
           numberOfVideos: 1, 
           resolution: '720p', 
@@ -33,25 +39,27 @@ export const generateGardenVideo = async (image: string, prompt: string, aspectR
         }
       });
 
+      // Poll for completion
       while (!operation.done) {
         await new Promise(resolve => setTimeout(resolve, 10000));
         operation = await ai.operations.getVideosOperation({operation: operation});
       }
 
       const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      if (!downloadLink) throw new Error("Video generation operation completed but returned no URI.");
+      if (!downloadLink) throw new Error("Video generation failed: No URI returned.");
 
+      // Fetch binary content with current key
       const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-      if (!response.ok) throw new Error("Failed to download generated video file.");
+      if (!response.ok) throw new Error(`Download failed: ${response.statusText}`);
       
-      const videoBlob = await response.blob();
-      return URL.createObjectURL(videoBlob);
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
     } catch (err: any) {
-      // Handle the specific "Requested entity not found" error for keys
+      // 3. Special handling for project selection errors
       if (err.message?.includes("Requested entity was not found")) {
-        throw new AppError("Selected API key project not found. Please re-select your key.", "KEY_NOT_FOUND");
+        throw new AppError("API key project error. Please re-select your paid project.", "KEY_NOT_FOUND");
       }
       throw err;
     }
-  }, { retries: 0 }); // Video generation is expensive and long-running; only retry on initialization
+  }, { retries: 0 }); // Veo is long-running; don't auto-retry the full operation
 };

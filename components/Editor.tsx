@@ -5,7 +5,7 @@ import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
 import { CameraModal } from './CameraModal';
 import { Button } from './common/UI';
-import { Save, Check, Clock, AlertCircle } from 'lucide-react';
+import { Save, Check, Clock, AlertCircle, Circle } from 'lucide-react';
 import { PLANTS } from '../data/plants';
 import { Plant } from '../types';
 
@@ -26,11 +26,14 @@ export const Editor: React.FC = () => {
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
         e.preventDefault();
         editor.handleRedo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        editor.handleSaveProject();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editor.handleUndo, editor.handleRedo]);
+  }, [editor.handleUndo, editor.handleRedo, editor.handleSaveProject]);
 
   const handleAddCustomItem = (plant: Plant) => {
     setCustomItems(prev => [plant, ...prev]);
@@ -42,15 +45,6 @@ export const Editor: React.FC = () => {
     p.name.toLowerCase().includes(plantSearch.toLowerCase())
   );
 
-  const handleSaveWithConfirmation = () => {
-    const confirmSave = window.confirm(
-      "Save your current garden design? This will update your local save file and overwrite any previous version of this project."
-    );
-    if (confirmSave) {
-      editor.handleSaveProject();
-    }
-  };
-
   return (
     <div className="max-w-7xl mx-auto p-6 w-full">
       {/* HEADER & SAVE */}
@@ -61,28 +55,37 @@ export const Editor: React.FC = () => {
         </div>
         
         <div className="md:ml-auto md:relative z-10 flex flex-col items-end gap-1">
-           <Button 
-             onClick={handleSaveWithConfirmation}
-             disabled={!editor.currentImage || editor.saveStatus === 'saving'}
-             variant={editor.saveStatus === 'saved' ? 'primary' : 'secondary'}
-             className={editor.saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : 'bg-stone-900 hover:bg-stone-800'}
-             leftIcon={editor.saveStatus === 'saved' ? <Check size={18} /> : editor.saveStatus === 'saving' ? undefined : <Save size={18} />}
-             isLoading={editor.saveStatus === 'saving'}
-           >
-             {editor.saveStatus === 'saved' ? 'Saved!' : 'Save Design'}
-           </Button>
+           <div className="relative">
+             <Button 
+               onClick={editor.handleSaveProject}
+               disabled={!editor.currentImage || editor.saveStatus === 'saving'}
+               variant={editor.saveStatus === 'saved' ? 'primary' : 'secondary'}
+               className={`transition-all duration-300 ${editor.saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : 'bg-stone-900 hover:bg-stone-800'}`}
+               leftIcon={editor.saveStatus === 'saved' ? <Check size={18} /> : editor.saveStatus === 'saving' ? undefined : <Save size={18} />}
+               isLoading={editor.saveStatus === 'saving'}
+             >
+               {editor.saveStatus === 'saved' ? 'Saved!' : 'Save Design'}
+             </Button>
+             
+             {editor.isDirty && editor.saveStatus !== 'saved' && (
+               <div className="absolute -top-1 -right-1 flex h-3 w-3">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
+               </div>
+             )}
+           </div>
            
            {editor.saveError && (
-             <div className="flex items-center gap-1 text-[10px] text-red-500 font-medium">
+             <div className="flex items-center gap-1 text-[10px] text-red-500 font-medium animate-shake">
                 <AlertCircle size={10} />
                 <span>{editor.saveError}</span>
              </div>
            )}
            
            {!editor.saveError && editor.lastSaved && (
-             <div className="flex items-center gap-1 text-[10px] text-stone-400">
+             <div className="flex items-center gap-1 text-[10px] text-stone-400 transition-opacity">
                <Clock size={10} />
-               <span>Last saved: {new Date(editor.lastSaved).toLocaleTimeString()}</span>
+               <span>Last saved: {new Date(editor.lastSaved).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
              </div>
            )}
         </div>
@@ -107,7 +110,6 @@ export const Editor: React.FC = () => {
             e.dataTransfer.effectAllowed = 'copy';
           }}
           onAddToDesign={(instruction) => {
-             // Check if instruction already starts with a verb (Add, Remove, etc)
              const isCommand = /^(Add|Remove|Delete|Change|Move)/i.test(instruction);
              editor.updatePromptWithInstruction(isCommand ? instruction : `Add ${instruction}`);
           }}
@@ -126,7 +128,6 @@ export const Editor: React.FC = () => {
           onRemoveMarker={(id) => {
              const m = editor.markerManager.removeMarkerById(id);
              if (m) {
-                 // Try to intelligently remove the text instruction from the prompt too
                  const newPrompt = editor.editPrompt.replace(m.instruction, '').trim().replace(/\s\s+/g, ' ');
                  editor.setEditPrompt(newPrompt);
              }

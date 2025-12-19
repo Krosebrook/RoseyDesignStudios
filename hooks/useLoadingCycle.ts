@@ -1,25 +1,39 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useRef } from 'react';
 import { LoadingState } from '../types';
 
+/**
+ * Periodically rotates loading messages to improve perceived performance.
+ */
 export const useLoadingCycle = (
   loading: LoadingState, 
   setLoading: React.Dispatch<React.SetStateAction<LoadingState>>, 
   messages: string[], 
   targetOperation?: string,
-  intervalMs = 2500
+  intervalMs = 3000
 ) => {
+  const indexRef = useRef(0);
+
   useEffect(() => {
-    // Only cycle if loading, and if a targetOperation is defined, it must match
-    if (!loading.isLoading) return;
+    if (!loading.isLoading) {
+      indexRef.current = 0;
+      return;
+    }
+    
+    // Only cycle if operation matches
     if (targetOperation && loading.operation !== targetOperation) return;
     
-    let index = 0;
     const interval = setInterval(() => {
-      index = (index + 1) % messages.length;
+      indexRef.current = (indexRef.current + 1) % messages.length;
+      const nextMessage = messages[indexRef.current];
+
       setLoading(prev => {
-        // Guard clause to prevent setting state on unmounted or changed op
-        if (!prev.isLoading || (targetOperation && prev.operation !== targetOperation)) return prev;
-        return { ...prev, message: messages[index] };
+        // Double check condition inside state updater for safety
+        if (!prev.isLoading || (targetOperation && prev.operation !== targetOperation)) {
+           return prev;
+        }
+        if (prev.message === nextMessage) return prev;
+        return { ...prev, message: nextMessage };
       });
     }, intervalMs);
     
