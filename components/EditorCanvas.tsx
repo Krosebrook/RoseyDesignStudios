@@ -13,7 +13,6 @@ interface PlantMarker {
   instruction: string;
 }
 
-// Added EditorCanvasProps interface definition to fix type error
 interface EditorCanvasProps {
   currentImage: string | null;
   loading: LoadingState;
@@ -42,16 +41,25 @@ const Marker = memo(({ marker, is3D, onRemove }: { marker: PlantMarker, is3D: bo
           : `translate(-50%, -50%)` 
     }}
   >
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-black/40 rounded-full blur-xl opacity-0 group-hover/marker:opacity-100 transition-all duration-300 pointer-events-none -z-20 scale-75 group-hover/marker:scale-110" />
+    {/* Depth Shadow - Persistent but subtle, deepens on hover */}
+    <div 
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 translate-y-2 w-12 h-12 bg-black/30 rounded-full blur-xl opacity-40 group-hover/marker:opacity-80 transition-all duration-500 pointer-events-none -z-20 scale-75 group-hover/marker:scale-125 group-hover/marker:translate-y-4" 
+    />
+    
     <button 
       onClick={() => onRemove(marker.id)}
-      className="w-8 h-8 bg-white text-primary-600 rounded-full shadow-md group-hover/marker:shadow-2xl flex items-center justify-center border-2 border-primary-500 transition-all duration-200 group-hover/marker:scale-110 group-hover/marker:-translate-y-1 relative z-10 hover:bg-red-50 hover:border-red-500 hover:text-red-500"
+      className="w-8 h-8 bg-white text-primary-600 rounded-full shadow-md group-hover/marker:shadow-2xl flex items-center justify-center border-2 border-primary-500 transition-all duration-300 group-hover/marker:scale-110 group-hover/marker:-translate-y-2 relative z-10 hover:bg-red-50 hover:border-red-500 hover:text-red-500"
+      title="Remove item"
     >
       <span className="group-hover/marker:hidden"><Sprout size={16} /></span>
       <span className="hidden group-hover/marker:block"><X size={16} /></span>
     </button>
-    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-stone-900/90 text-white text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none z-20 backdrop-blur-sm">
-       {marker.name}
+
+    <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 bg-stone-900/95 text-white text-[10px] px-2.5 py-1.5 rounded-lg shadow-2xl border border-white/10 whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-all duration-300 pointer-events-none z-20 backdrop-blur-md translate-y-2 group-hover/marker:translate-y-0">
+       <div className="flex items-center gap-2">
+         <div className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
+         <span className="font-bold tracking-tight">{marker.name}</span>
+       </div>
     </div>
   </div>
 ));
@@ -167,9 +175,23 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         {currentImage && (
           <div className="p-3 border-t border-stone-200 bg-white flex justify-between items-center z-20">
              <div className="flex gap-2 items-center bg-stone-50 p-1 rounded-lg border border-stone-200">
-                <button onClick={onUndo} disabled={!canUndo} className="p-2 text-stone-600 hover:text-stone-900 disabled:opacity-20"><Undo2 size={16} /></button>
-                <button onClick={onRedo} disabled={!canRedo} className="p-2 text-stone-600 hover:text-stone-900 disabled:opacity-20"><Redo2 size={16} /></button>
-                <span className="text-[10px] text-stone-400 font-mono px-2">REV {currentIndex + 1}</span>
+                <button 
+                  onClick={onUndo} 
+                  disabled={!canUndo} 
+                  className="p-2 text-stone-600 hover:text-stone-900 disabled:opacity-20 transition-opacity"
+                  title="Undo edit (Ctrl+Z)"
+                >
+                  <Undo2 size={16} />
+                </button>
+                <button 
+                  onClick={onRedo} 
+                  disabled={!canRedo} 
+                  className="p-2 text-stone-600 hover:text-stone-900 disabled:opacity-20 transition-opacity"
+                  title="Redo edit (Ctrl+Shift+Z)"
+                >
+                  <Redo2 size={16} />
+                </button>
+                <span className="text-[10px] text-stone-400 font-mono px-2">REV {currentIndex + 1} / {historyLength}</span>
              </div>
              <a href={currentImage} download="garden-design.png" className="flex items-center gap-2 px-4 py-2 bg-stone-900 text-white text-xs font-bold rounded-lg hover:bg-stone-800 transition-colors">
                <Download size={14} /> EXPORT

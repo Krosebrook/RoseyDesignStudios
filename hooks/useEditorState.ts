@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useImageHistory } from './useImageHistory';
 import { useMarkers } from './useMarkers';
 import { useProjectStorage } from './useProjectStorage';
@@ -56,7 +56,7 @@ export const useEditorState = () => {
     } else if (historyManager.history.length > 1) {
       setIsDirty(true);
     }
-  }, [historyManager.currentImage, storageManager.saveStatus]);
+  }, [historyManager.history.length, storageManager.saveStatus]);
 
   /**
    * Appends new instructions to the prompt with smart formatting.
@@ -167,6 +167,9 @@ export const useEditorState = () => {
   return {
     currentImage: historyManager.currentImage,
     history: historyManager.history,
+    currentIndex: historyManager.currentIndex,
+    canUndo: historyManager.canUndo,
+    canRedo: historyManager.canRedo,
     markers: markerManager.markers,
     loading,
     editPrompt,

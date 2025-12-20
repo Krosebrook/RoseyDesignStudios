@@ -1,59 +1,83 @@
+
 import { useState, useCallback } from 'react';
 
-export const useImageHistory = (initialImage: string | null, initialHistory?: string[]) => {
-  // The history array stores all states
-  const [history, setHistory] = useState<string[]>(initialHistory || (initialImage ? [initialImage] : []));
-  // The currentIndex points to the currently active state in the history array
-  const [currentIndex, setCurrentIndex] = useState<number>(initialHistory ? initialHistory.length - 1 : 0);
+interface HistoryState {
+  items: string[];
+  index: number;
+}
 
-  // The current image is derived from the history at the current index
-  const currentImage = history[currentIndex] || null;
+const MAX_HISTORY = 20;
+
+/**
+ * Robust history manager for state tracking (Undo/Redo).
+ * Uses unified state to ensure index and items are always in sync.
+ */
+export const useImageHistory = (initialImage: string | null, initialHistory?: string[]) => {
+  const [state, setState] = useState<HistoryState>({
+    items: initialHistory || (initialImage ? [initialImage] : []),
+    index: initialHistory ? initialHistory.length - 1 : 0
+  });
+
+  const currentImage = state.items[state.index] || null;
 
   const pushToHistory = useCallback((newImage: string) => {
-    setHistory(prev => {
-      // If we are in the middle of history and make a new change, 
-      // we discard all "future" states (redo stack)
-      const newHistory = prev.slice(0, currentIndex + 1);
-      return [...newHistory, newImage];
+    setState(prev => {
+      // Discard "future" redo stack if we make a new change from an earlier point
+      const head = prev.items.slice(0, prev.index + 1);
+      const newItems = [...head, newImage];
+      
+      // Enforce max history limit to save memory
+      if (newItems.length > MAX_HISTORY) {
+        return {
+          items: newItems.slice(newItems.length - MAX_HISTORY),
+          index: MAX_HISTORY - 1
+        };
+      }
+
+      return {
+        items: newItems,
+        index: newItems.length - 1
+      };
     });
-    setCurrentIndex(prev => prev + 1);
-  }, [currentIndex]);
+  }, []);
 
   const undo = useCallback(() => {
-    setCurrentIndex(prev => Math.max(0, prev - 1));
+    setState(prev => ({
+      ...prev,
+      index: Math.max(0, prev.index - 1)
+    }));
   }, []);
 
   const redo = useCallback(() => {
-    setCurrentIndex(prev => Math.min(history.length - 1, prev + 1));
-  }, [history.length]);
-
-  const resetHistory = useCallback((image: string, newHistory?: string[]) => {
-    if (newHistory && newHistory.length > 0) {
-        setHistory(newHistory);
-        setCurrentIndex(newHistory.length - 1);
-    } else {
-        setHistory([image]);
-        setCurrentIndex(0);
-    }
+    setState(prev => ({
+      ...prev,
+      index: Math.min(prev.items.length - 1, prev.index + 1)
+    }));
   }, []);
 
-  // Exposed for manual overrides (e.g. file upload without history tracking)
+  const resetHistory = useCallback((image: string, newHistory?: string[]) => {
+    setState({
+      items: newHistory && newHistory.length > 0 ? newHistory : [image],
+      index: newHistory && newHistory.length > 0 ? newHistory.length - 1 : 0
+    });
+  }, []);
+
   const setCurrentImage = useCallback((image: string | null) => {
     if (image) {
-        // When manually setting image (like upload), we typically reset
-        resetHistory(image);
+      resetHistory(image);
     }
   }, [resetHistory]);
 
   return {
     currentImage,
     setCurrentImage,
-    history,
+    history: state.items,
+    currentIndex: state.index,
     pushToHistory,
     undo,
     redo,
     resetHistory,
-    canUndo: currentIndex > 0,
-    canRedo: currentIndex < history.length - 1
+    canUndo: state.index > 0,
+    canRedo: state.index < state.items.length - 1
   };
 };

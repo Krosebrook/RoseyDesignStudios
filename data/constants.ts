@@ -59,10 +59,16 @@ export const GENERATOR_LOADING_MESSAGES = [
 ];
 
 export const GENERATOR_SUGGESTIONS = [
-  "A peaceful Japanese Zen garden with a small koi pond, bamboo fence, and maple trees.",
-  "A modern minimalist backyard with concrete pavers, succulents, and a fire pit.",
-  "A lush English cottage garden overflowing with colorful wildflowers and a cobblestone path.",
-  "A tropical paradise with palm trees, a hammock, and vibrant exotic flowers."
+  "A bioluminescent nocturnal garden with glowing purple ferns, neon blue mushrooms, and dark obsidian paths under a silver full moon.",
+  "A Mediterranean courtyard with terracotta tiles, a central tiered marble fountain, climbing magenta bougainvillea, and fragrant lemon trees.",
+  "A futuristic sustainable rooftop oasis featuring vertical hydroponic walls, glass-enclosed seating, and wind-sculpted kinetic metal art.",
+  "A rugged Scandinavian woodland retreat with a natural swimming pond, silver birch trees, and a weathered timber sauna cabin in the mist.",
+  "A Moroccan riad garden with intricate zellige mosaic tiles, teal water channels, lush fan palms, and oversized terracotta pots filled with jasmine.",
+  "A high-desert xeriscape with structural blue agaves, golden barrel cacti, red sandstone boulders, and a minimalist corten steel fire bowl.",
+  "A Victorian-inspired gothic secret garden with a rusted iron gazebo, overgrown dark ivy, black hellebores, and crumbling mossy stone statues.",
+  "A sleek mid-century modern backyard with a kidney-shaped pool, white gravel beds, architectural yucca, and orange accent breeze block walls.",
+  "A peaceful Japanese Zen garden with a small koi pond, bridge, bamboo fence, and raked gravel around a single ancient maple tree.",
+  "A lush English cottage garden overflowing with colorful delphiniums, foxgloves, and a winding cobblestone path through a rose arch."
 ];
 
 // Prompt Builders
