@@ -81,7 +81,8 @@ export const SeasonalSpotlight: React.FC<SeasonalSpotlightProps> = ({
   };
 
   const CurrentIcon = seasonConfig[currentSeason].icon;
-  const gardenStyles: GardenStyle[] = ['Cottage', 'Modern', 'Zen', 'Xeriscape', 'Tropical', 'Formal', 'Woodland'];
+  // Included 'Minimalist' in the list of available garden styles for selection
+  const gardenStyles: GardenStyle[] = ['Cottage', 'Modern', 'Zen', 'Xeriscape', 'Tropical', 'Formal', 'Woodland', 'Minimalist'];
 
   return (
     <div className={`mb-12 rounded-3xl border ${seasonConfig[currentSeason].border} ${seasonConfig[currentSeason].bg} overflow-hidden transition-colors duration-500 shadow-sm`}>

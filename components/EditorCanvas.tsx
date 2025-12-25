@@ -41,9 +41,14 @@ const Marker = memo(({ marker, is3D, onRemove }: { marker: PlantMarker, is3D: bo
           : `translate(-50%, -50%)` 
     }}
   >
-    {/* Depth Shadow - Persistent but subtle, deepens on hover */}
+    {/* Multi-layered Depth Shadow */}
+    {/* 1. Tight contact shadow */}
     <div 
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 translate-y-2 w-12 h-12 bg-black/30 rounded-full blur-xl opacity-40 group-hover/marker:opacity-80 transition-all duration-500 pointer-events-none -z-20 scale-75 group-hover/marker:scale-125 group-hover/marker:translate-y-4" 
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 translate-y-0.5 w-6 h-6 bg-black/40 rounded-full blur-sm opacity-60 group-hover/marker:opacity-40 transition-all duration-500 pointer-events-none -z-20" 
+    />
+    {/* 2. Large diffused ambient shadow */}
+    <div 
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 translate-y-2 w-10 h-10 bg-black/10 rounded-full blur-xl opacity-40 group-hover/marker:opacity-100 group-hover/marker:bg-black/30 transition-all duration-700 pointer-events-none -z-20 scale-90 group-hover/marker:scale-[3.5] group-hover/marker:translate-y-10 group-hover/marker:blur-2xl" 
     />
     
     <button 

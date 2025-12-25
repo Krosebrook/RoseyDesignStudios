@@ -1,13 +1,15 @@
 
 import React from 'react';
-import { Sprout, PenTool } from 'lucide-react';
+import { Sprout, PenTool, ClipboardList } from 'lucide-react';
 import { Plant, LoadingState } from '../types';
 import { ToolsTab } from './editor/sidebar/ToolsTab';
 import { PaletteTab } from './editor/sidebar/PaletteTab';
+import { InventoryTab } from './editor/sidebar/InventoryTab';
+import { InventoryItem } from '../hooks/useEditorState';
 
 interface EditorSidebarProps {
-  activeTab: 'tools' | 'plants';
-  setActiveTab: (tab: 'tools' | 'plants') => void;
+  activeTab: 'tools' | 'plants' | 'inventory';
+  setActiveTab: (tab: 'tools' | 'plants' | 'inventory') => void;
   loading: LoadingState;
   currentImage: string | null;
   editPrompt: string;
@@ -22,6 +24,8 @@ interface EditorSidebarProps {
   onAddToDesign: (name: string) => void;
   onAddCustomItem: (plant: Plant) => void;
   onOpenCamera: () => void;
+  inventory: InventoryItem[];
+  gardenNeeds: any;
 }
 
 export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
@@ -32,20 +36,21 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
       {/* Navigation Tabs */}
       <div className="flex mb-4 bg-stone-100 p-1 rounded-xl shadow-inner">
         {[
-          { id: 'tools', label: 'Editor Tools', icon: PenTool },
-          { id: 'plants', label: 'Item Palette', icon: Sprout }
+          { id: 'tools', label: 'Editor', icon: PenTool },
+          { id: 'plants', label: 'Palette', icon: Sprout },
+          { id: 'inventory', label: 'Spec', icon: ClipboardList }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-2 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 ${
               activeTab === tab.id 
                 ? 'bg-white text-stone-800 shadow-sm ring-1 ring-black/5' 
                 : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200/50'
             }`}
             aria-current={activeTab === tab.id ? 'page' : undefined}
           >
-            <tab.icon size={16} className={activeTab === tab.id ? 'text-primary-600' : ''} />
+            <tab.icon size={14} className={activeTab === tab.id ? 'text-primary-600' : ''} />
             {tab.label}
           </button>
         ))}
@@ -65,7 +70,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
               onOpenCamera={props.onOpenCamera}
             />
           </div>
-        ) : (
+        ) : activeTab === 'plants' ? (
           <PaletteTab 
             plantSearch={props.plantSearch}
             setPlantSearch={props.setPlantSearch}
@@ -73,6 +78,11 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
             onDragStart={props.onDragStart}
             onAddToDesign={props.onAddToDesign}
             onAddCustomItem={props.onAddCustomItem}
+          />
+        ) : (
+          <InventoryTab 
+            inventory={props.inventory}
+            gardenNeeds={props.gardenNeeds}
           />
         )}
       </div>

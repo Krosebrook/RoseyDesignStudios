@@ -151,5 +151,38 @@ export const PLANTS: Plant[] = [
     category: 'Furniture',
     styles: ['Cottage', 'Modern', 'Formal', 'Zen'],
     seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
+  },
+  {
+    id: 'f2',
+    name: 'Concrete Fire Table',
+    scientificName: 'Modern Accent',
+    description: 'A sophisticated centerpiece for modern outdoor living, this architectural fire table combines the raw beauty of hand-cast concrete with the warmth of a clean-burning flame. Its wide top provides ample space for refreshments, making it the ultimate social hub for evening gatherings. It brings a refined, industrial edge to clean-lined gardens and poolside lounges.',
+    water: 'Drought-tolerant',
+    imageUrl: 'https://images.unsplash.com/photo-1621230113526-9d33261209cc?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Modern', 'Formal', 'Minimalist'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
+  },
+  {
+    id: 'f3',
+    name: 'Woven Hanging Egg Chair',
+    scientificName: 'Suspended Seating',
+    description: 'Effortlessly blending bohemian charm with ergonomic comfort, this suspended sanctuary features a durable resin-wicker weave that withstands the elements. The gentle swaying motion and plush weather-resistant cushions create an intimate nook for morning coffee or afternoon reading. It adds a vertical, sculptural element to tropical patios and whimsical cottage corners.',
+    water: 'Drought-tolerant',
+    imageUrl: 'https://images.unsplash.com/photo-1581452179124-699763784df4?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Tropical', 'Cottage', 'Zen', 'Woodland'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
+  },
+  {
+    id: 'f4',
+    name: 'Recycled Poly Adirondack Chair',
+    scientificName: 'Classic Lawn Seating',
+    description: 'An eco-friendly evolution of a timeless American classic, this chair is crafted from high-density recycled plastics that mimic the texture of painted wood without the maintenance. Its iconic slanted back and oversized armrests are designed for pure relaxation. Extremely durable and heavy enough to stay put in windy environments, it serves as a rugged yet stylish anchor for casual lawn spaces.',
+    water: 'Drought-tolerant',
+    imageUrl: 'https://images.unsplash.com/photo-1591122941067-e4ca93c0892a?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Woodland', 'Xeriscape'],
+    seasons: ['Spring', 'Summer', 'Autumn', 'Winter']
   }
 ];

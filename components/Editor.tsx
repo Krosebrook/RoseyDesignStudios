@@ -115,6 +115,8 @@ export const Editor: React.FC = () => {
           }}
           onAddCustomItem={handleAddCustomItem}
           onOpenCamera={() => editor.setShowCamera(true)}
+          inventory={editor.inventory}
+          gardenNeeds={editor.gardenNeeds}
         />
         
         <EditorCanvas

@@ -48,7 +48,8 @@ export type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
 export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture' | 'Feature';
 
-export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical' | 'Formal' | 'Woodland';
+// Added 'Minimalist' to the GardenStyle union type to fix assignment error in data/plants.ts
+export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical' | 'Formal' | 'Woodland' | 'Minimalist';
 
 export interface Plant {
   id: string;

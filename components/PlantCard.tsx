@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Plant } from '../types';
-import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download, CheckCircle2, Armchair, Droplet, Settings2, Flower } from 'lucide-react';
+import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Download, CheckCircle2, Armchair, Droplet, Settings2, Flower, Info, Wand2 } from 'lucide-react';
 import { createDragGhost } from '../utils/ui';
 
 interface PlantCardProps {
@@ -40,8 +40,9 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isBeingDragged, setIsBeingDragged] = useState(false);
 
+  // Auto-switch to newly generated image
   useEffect(() => {
-    if (images.length > 0) {
+    if (images.length > 1) {
       setCurrentIndex(images.length - 1);
     }
   }, [images.length]);
@@ -74,6 +75,44 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
     setIsBeingDragged(false);
   }, []);
 
+  // Rich Tooltip UI Component
+  const RichTooltip = () => (
+    <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-72 bg-stone-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-4 text-white z-[100] opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h4 className="font-bold text-sm leading-tight">{plant.name}</h4>
+          <p className="text-[10px] text-stone-400 italic">{plant.scientificName}</p>
+        </div>
+        <div className="bg-white/10 p-1.5 rounded-lg">
+          <Info size={14} className="text-primary-400" />
+        </div>
+      </div>
+      
+      <p className="text-[11px] text-stone-300 leading-relaxed mb-4 line-clamp-4">
+        {enhancedDescription || plant.description}
+      </p>
+
+      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
+        <div className="flex flex-col items-center gap-1">
+          <Sun size={12} className="text-amber-400" />
+          <span className="text-[9px] font-bold uppercase tracking-tight text-stone-400 text-center">{plant.sunlight?.split(' ')[0] || 'N/A'}</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 border-x border-white/5">
+          <Droplets size={12} className="text-blue-400" />
+          <span className="text-[9px] font-bold uppercase tracking-tight text-stone-400 text-center">{plant.water === 'Drought-tolerant' ? 'LOW' : plant.water?.toUpperCase()}</span>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <Calendar size={12} className="text-emerald-400" />
+          <span className="text-[9px] font-bold uppercase tracking-tight text-stone-400 text-center truncate w-full">{plant.seasons?.[0] || 'YEAR'}</span>
+        </div>
+      </div>
+
+      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-stone-900 rotate-45 border-r border-b border-white/10" />
+    </div>
+  );
+
+  const hasAIImages = images.length > 1;
+
   if (mini) {
     return (
       <div 
@@ -81,11 +120,12 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
         onDragStart={handleDragStartInternal}
         onDragEnd={handleDragEnd}
         onClick={() => onAddToDesign && onAddToDesign(plant.name)}
-        className={`group cursor-grab active:cursor-grabbing relative rounded-xl border border-stone-200 overflow-hidden transition-all bg-white select-none
+        className={`group cursor-grab active:cursor-grabbing relative rounded-xl border border-stone-200 overflow-visible transition-all bg-white select-none
           ${isBeingDragged ? 'shadow-xl ring-2 ring-primary-400 opacity-50 scale-95 grayscale' : 'hover:shadow-md hover:border-primary-300'}
         `}
       >
-        <div className="aspect-square overflow-hidden relative">
+        <RichTooltip />
+        <div className="aspect-square overflow-hidden relative rounded-t-xl">
           <img 
             src={images[0]} 
             alt={plant.name}
@@ -117,18 +157,42 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
       draggable={isDraggable}
       onDragStart={handleDragStartInternal}
       onDragEnd={handleDragEnd}
-      className={`bg-white rounded-[2rem] overflow-hidden transition-all duration-500 border border-stone-100 group flex flex-col h-full relative 
+      className={`bg-white rounded-[2rem] overflow-visible transition-all duration-500 border border-stone-100 group flex flex-col h-full relative 
         ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}
         ${isBeingDragged ? 'shadow-2xl ring-2 ring-primary-400 opacity-50 scale-[0.98] grayscale-[0.5]' : 'shadow-sm hover:shadow-2xl hover:-translate-y-2'}
       `}
     >
-      <div className="relative h-56 overflow-hidden bg-stone-100 group/image">
+      <RichTooltip />
+      <div className="relative h-56 overflow-hidden bg-stone-100 group/image rounded-t-[2rem]">
         <img 
           src={images[currentIndex] || images[0]} 
           alt={`${plant.name} variation`}
           className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 ${isGenerating ? 'opacity-80 blur-sm' : ''}`}
           loading="lazy"
         />
+        
+        {/* Prominent "Visualize with AI" Button for plants with only stock image */}
+        {!hasAIImages && !isGenerating && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 z-20 pointer-events-none">
+             <button 
+               onClick={(e) => onGenerateAI(e, plant)}
+               className="pointer-events-auto bg-white/95 backdrop-blur shadow-xl border border-stone-200 px-4 py-2 rounded-full text-stone-800 text-xs font-bold flex items-center gap-2 hover:bg-white hover:scale-105 transition-all"
+             >
+               <Sparkles size={14} className="text-primary-600" />
+               Visualize with AI
+             </button>
+          </div>
+        )}
+
+        {/* Loading Overlay */}
+        {isGenerating && (
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-sm flex flex-col items-center justify-center z-40 animate-pulse">
+             <div className="bg-white p-3 rounded-full shadow-lg mb-2">
+                <Wand2 size={24} className="text-primary-600 animate-bounce" />
+             </div>
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-800">Dreaming...</p>
+          </div>
+        )}
         
         {images.length > 1 && (
           <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-[10px] px-3 py-1 rounded-full font-bold z-20 flex items-center gap-1.5 border border-white/10 shadow-lg">
@@ -178,7 +242,7 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
             )}
         </div>
 
-        {/* AI Quick Actions Overlay */}
+        {/* AI Quick Actions Overlay - Enhanced Visibility */}
         <div className="absolute bottom-4 right-4 z-30 flex gap-2 translate-y-4 group-hover/image:translate-y-0 opacity-0 group-hover/image:opacity-100 transition-all duration-500">
            {onCustomize && (
              <button
@@ -195,7 +259,7 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
              onClick={(e) => onGenerateAI(e, plant)}
              disabled={isGenerating}
              className="bg-primary-600 hover:bg-primary-700 text-white p-2.5 rounded-full shadow-2xl transition-all hover:scale-110 border border-primary-500"
-             title="Generate Variation"
+             title={hasAIImages ? "Generate Another Variation" : "Generate AI Illustration"}
            >
              {isGenerating ? (
                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
