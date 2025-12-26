@@ -117,6 +117,8 @@ export const Editor: React.FC = () => {
           onOpenCamera={() => editor.setShowCamera(true)}
           inventory={editor.inventory}
           gardenNeeds={editor.gardenNeeds}
+          maintenanceReport={editor.maintenanceReport}
+          onGenerateReport={editor.handleGenerateReport}
         />
         
         <EditorCanvas

@@ -1,13 +1,18 @@
 
 import React from 'react';
-import { Search, Filter, X, Sun, Droplets, Calendar, Layers } from 'lucide-react';
+import { Search, Filter, X, Sun, Droplets, Calendar, Layers, Palette, Check } from 'lucide-react';
 import { usePlantFiltering } from '../hooks/usePlantFiltering';
+import { GardenStyle } from '../types';
 
 interface PlantFiltersProps {
   filters: ReturnType<typeof usePlantFiltering>;
   showFilters: boolean;
   toggleFilters: () => void;
 }
+
+const GARDEN_STYLES: GardenStyle[] = [
+  'Cottage', 'Modern', 'Zen', 'Xeriscape', 'Tropical', 'Formal', 'Woodland', 'Minimalist'
+];
 
 export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters, toggleFilters }) => {
   const {
@@ -21,6 +26,8 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
     setSeasonFilter,
     categoryFilter,
     setCategoryFilter,
+    styleFilters,
+    toggleStyleFilter,
     clearFilters,
     activeFiltersCount
   } = filters;
@@ -53,74 +60,114 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
 
       {/* Expanded Filters Panel */}
       {showFilters && (
-        <div className="mt-4 pt-4 border-t border-stone-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
-              <Layers size={16} className="text-purple-500" /> Category
-            </label>
-            <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value as any)}
-              className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
-            >
-              <option value="All">All Items</option>
-              <option value="Plant">Plants</option>
-              <option value="Feature">Garden Features</option>
-              <option value="Furniture">Furniture</option>
-              <option value="Water Feature">Water Features</option>
-            </select>
+        <div className="mt-4 pt-4 border-t border-stone-100 space-y-6 animate-fade-in">
+          {/* Main Selectors Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
+                <Layers size={16} className="text-purple-500" /> Category
+              </label>
+              <select 
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value as any)}
+                className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
+              >
+                <option value="All">All Items</option>
+                <option value="Plant">Plants</option>
+                <option value="Feature">Garden Features</option>
+                <option value="Furniture">Furniture</option>
+                <option value="Water Feature">Water Features</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
+                <Sun size={16} className="text-amber-500" /> Sunlight
+              </label>
+              <select 
+                value={sunlightFilter}
+                onChange={(e) => setSunlightFilter(e.target.value as any)}
+                className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
+              >
+                <option value="All">Any Sunlight</option>
+                <option value="Full Sun">Full Sun</option>
+                <option value="Partial Shade">Partial Shade</option>
+                <option value="Full Shade">Full Shade</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
+                <Droplets size={16} className="text-blue-500" /> Water Needs
+              </label>
+              <select 
+                value={waterFilter}
+                onChange={(e) => setWaterFilter(e.target.value as any)}
+                className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
+              >
+                <option value="All">Any Water</option>
+                <option value="Drought-tolerant">Drought Tolerant</option>
+                <option value="Moderate">Moderate</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
+                <Calendar size={16} className="text-primary-500" /> Season
+              </label>
+              <select 
+                value={seasonFilter}
+                onChange={(e) => setSeasonFilter(e.target.value as any)}
+                className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
+              >
+                <option value="All">Any Season</option>
+                <option value="Spring">Spring</option>
+                <option value="Summer">Summer</option>
+                <option value="Autumn">Autumn</option>
+                <option value="Winter">Winter</option>
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
-              <Sun size={16} className="text-amber-500" /> Sunlight
-            </label>
-            <select 
-              value={sunlightFilter}
-              onChange={(e) => setSunlightFilter(e.target.value as any)}
-              className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
-            >
-              <option value="All">Any Sunlight</option>
-              <option value="Full Sun">Full Sun</option>
-              <option value="Partial Shade">Partial Shade</option>
-              <option value="Full Shade">Full Shade</option>
-            </select>
+          {/* Style Multi-Select (Chips) */}
+          <div className="bg-stone-50/50 p-4 rounded-xl border border-stone-100">
+            <div className="flex items-center justify-between mb-3">
+               <label className="flex items-center gap-2 text-sm font-bold text-stone-700 uppercase tracking-wider">
+                <Palette size={16} className="text-pink-500" /> Garden Style Preference
+              </label>
+              {styleFilters.length > 0 && (
+                <button 
+                  onClick={() => styleFilters.forEach(s => toggleStyleFilter(s))}
+                  className="text-[10px] font-black text-stone-400 hover:text-red-500 uppercase tracking-widest"
+                >
+                  Clear Selection
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {GARDEN_STYLES.map(style => {
+                const isActive = styleFilters.includes(style);
+                return (
+                  <button
+                    key={style}
+                    onClick={() => toggleStyleFilter(style)}
+                    className={`group flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all border ${
+                      isActive 
+                        ? 'bg-stone-900 border-stone-900 text-white shadow-md' 
+                        : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'
+                    }`}
+                  >
+                    {isActive && <Check size={12} className="text-primary-400" />}
+                    {style}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-[10px] text-stone-400 italic">Select one or more styles to see compatible plants and features.</p>
           </div>
           
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
-              <Droplets size={16} className="text-blue-500" /> Water Needs
-            </label>
-            <select 
-              value={waterFilter}
-              onChange={(e) => setWaterFilter(e.target.value as any)}
-              className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
-            >
-              <option value="All">Any Water</option>
-              <option value="Drought-tolerant">Drought Tolerant</option>
-              <option value="Moderate">Moderate</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
-              <Calendar size={16} className="text-primary-500" /> Season
-            </label>
-            <select 
-              value={seasonFilter}
-              onChange={(e) => setSeasonFilter(e.target.value as any)}
-              className="w-full p-2 rounded-lg border border-stone-200 text-sm focus:border-primary-500 outline-none bg-stone-50 focus:bg-white transition-colors"
-            >
-              <option value="All">Any Season</option>
-              <option value="Spring">Spring</option>
-              <option value="Summer">Summer</option>
-              <option value="Autumn">Autumn</option>
-              <option value="Winter">Winter</option>
-            </select>
-          </div>
-          
-          <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
+          <div className="flex justify-end pt-2">
               <button 
                   onClick={clearFilters}
                   className="text-sm text-stone-500 hover:text-red-600 flex items-center gap-1 transition-colors"

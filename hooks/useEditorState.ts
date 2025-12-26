@@ -1,15 +1,14 @@
 
-
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useImageHistory } from './useImageHistory';
 import { useMarkers } from './useMarkers';
 import { useProjectStorage } from './useProjectStorage';
 import { useLoadingCycle } from './useLoadingCycle';
 import { useApp } from '../contexts/AppContext';
-import { editGardenImage } from '../services/gemini';
-import { EDIT_LOADING_MESSAGES } from '../data/constants';
+import { editGardenImage, generateMaintenanceReport } from '../services/gemini';
+import { EDIT_LOADING_MESSAGES, REPORT_LOADING_MESSAGES } from '../data/constants';
 import { getPositionDescription } from '../utils/editor';
-import { LoadingState, Plant } from '../types';
+import { LoadingState, Plant, MaintenanceReport } from '../types';
 import { PromptService } from '../services/prompts';
 import { createLogger } from '../utils/logger';
 import { PLANTS } from '../data/plants';
@@ -43,9 +42,12 @@ export const useEditorState = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [maintenanceReport, setMaintenanceReport] = useState<MaintenanceReport | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useLoadingCycle(loading, setLoading, EDIT_LOADING_MESSAGES, 'editing');
+  useLoadingCycle(loading, setLoading, REPORT_LOADING_MESSAGES, 'reporting');
 
   // Compute design inventory based on markers
   const inventory = useMemo(() => {
@@ -78,8 +80,8 @@ export const useEditorState = () => {
       return acc;
     }, {} as Record<string, number>);
 
-    // Use explicit typing for sort parameters to fix arithmetic type errors on line 80
-    const dominantSun = Object.entries(sunlight).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0]?.[0] || 'Mixed';
+    const sortedEntries = Object.entries(sunlight).sort((a, b) => (b[1] as number) - (a[1] as number));
+    const dominantSun = sortedEntries[0]?.[0] || 'Mixed';
     
     return {
       dominantSun,
@@ -93,6 +95,7 @@ export const useEditorState = () => {
     if (initialImage && initialImage.dataUrl !== historyManager.currentImage) {
       historyManager.resetHistory(initialImage.dataUrl, initialHistory);
       markerManager.clearMarkers();
+      setMaintenanceReport(null);
       setIsDirty(false);
     }
   }, [initialImage?.id]);
@@ -133,6 +136,7 @@ export const useEditorState = () => {
         const result = reader.result as string;
         historyManager.setCurrentImage(result);
         markerManager.clearMarkers();
+        setMaintenanceReport(null);
         setLoading({ isLoading: false, operation: 'idle', message: '' });
         setIsDirty(true);
       };
@@ -143,6 +147,7 @@ export const useEditorState = () => {
   const handleCameraCapture = useCallback((imageData: string) => {
     historyManager.setCurrentImage(imageData);
     markerManager.clearMarkers();
+    setMaintenanceReport(null);
     setShowCamera(false);
     setIsDirty(true);
   }, [historyManager, markerManager]);
@@ -168,6 +173,7 @@ export const useEditorState = () => {
       historyManager.pushToHistory(result.data);
       setEditPrompt('');
       markerManager.clearMarkers();
+      setMaintenanceReport(null); // Clear report as the design changed
       setLoading({ isLoading: false, operation: 'idle', message: '' });
       setIsDirty(true);
     } catch (err: any) {
@@ -180,6 +186,25 @@ export const useEditorState = () => {
       });
     }
   }, [editPrompt, historyManager, markerManager.markers]);
+
+  const handleGenerateReport = useCallback(async () => {
+    if (inventory.length === 0) return;
+    
+    setLoading({ isLoading: true, operation: 'reporting', message: REPORT_LOADING_MESSAGES[0] });
+    try {
+      const report = await generateMaintenanceReport(inventory);
+      setMaintenanceReport(report);
+      setLoading({ isLoading: false, operation: 'idle', message: '' });
+    } catch (err: any) {
+      logger.error("Report failed", err);
+      setLoading({ 
+        isLoading: false, 
+        operation: 'idle', 
+        message: '', 
+        error: "Failed to generate maintenance plan. Please check your connection." 
+      });
+    }
+  }, [inventory]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -201,11 +226,19 @@ export const useEditorState = () => {
       
       updatePromptWithInstruction(instruction);
       markerManager.addMarker(plantName, xPercent, yPercent, instruction);
+      setMaintenanceReport(null); // Data has changed
     }
   }, [historyManager.currentImage, loading.isLoading, updatePromptWithInstruction, markerManager]);
 
-  const handleUndo = useCallback(() => historyManager.undo(), [historyManager]);
-  const handleRedo = useCallback(() => historyManager.redo(), [historyManager]);
+  const handleUndo = useCallback(() => {
+    historyManager.undo();
+    setMaintenanceReport(null);
+  }, [historyManager]);
+
+  const handleRedo = useCallback(() => {
+    historyManager.redo();
+    setMaintenanceReport(null);
+  }, [historyManager]);
 
   return {
     currentImage: historyManager.currentImage,
@@ -226,6 +259,7 @@ export const useEditorState = () => {
     isDraggingOver,
     setIsDraggingOver,
     isDirty,
+    maintenanceReport,
     saveStatus: storageManager.saveStatus,
     saveError: storageManager.error,
     lastSaved: storageManager.lastSaved,
@@ -238,6 +272,7 @@ export const useEditorState = () => {
     handleRedo,
     handleDrop,
     updatePromptWithInstruction,
+    handleGenerateReport,
     
     fileInputRef,
     markerManager,

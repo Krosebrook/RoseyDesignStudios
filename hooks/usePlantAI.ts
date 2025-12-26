@@ -6,7 +6,7 @@ import { createLogger } from '../utils/logger';
 import { useApp } from '../contexts/AppContext';
 
 const logger = createLogger('usePlantAI');
-const MAX_CONCURRENT_WORKERS = 2; // Conservative to avoid 429s
+const MAX_CONCURRENT_WORKERS = 2; 
 
 interface WorkItem {
   id: string;
@@ -58,7 +58,6 @@ export const usePlantAI = () => {
     }, []);
 
     const queueWork = useCallback((item: WorkItem) => {
-      // Avoid duplicate work in queue
       if (queueRef.current.some(q => q.id === item.id && q.type === item.type)) return;
       
       queueRef.current.push(item);
@@ -84,6 +83,8 @@ export const usePlantAI = () => {
               if (result.success && result.data && isMounted.current) {
                 updateAIState(prev => {
                   const existing = prev.generatedImages[plant.id] || [];
+                  // Only add if not already present
+                  if (existing.includes(result.data!)) return prev;
                   return {
                     ...prev,
                     generatedImages: { 

@@ -4,6 +4,7 @@ import { getAIClient } from '../services/gemini';
 import { LiveServerMessage, Modality, LiveSession } from '@google/genai';
 import { createBlob, decode, decodeAudioData } from '../utils/audio';
 import { createLogger } from '../utils/logger';
+import { AI_MODELS } from '../data/constants';
 
 const logger = createLogger('VoiceAssistant');
 const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -18,7 +19,7 @@ export const useVoiceAssistant = () => {
   const [status, setStatus] = useState('Ready to chat');
   const [volume, setVolume] = useState(0);
   
-  // Audio Lifecycle Refs
+  const isMountedRef = useRef(true);
   const inputContextRef = useRef<AudioContext | null>(null);
   const outputContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef<number>(0);
@@ -33,7 +34,6 @@ export const useVoiceAssistant = () => {
   const cleanup = useCallback(async () => {
     logger.debug('Cleaning up Voice Assistant resources');
     
-    // 1. Close Live API Session
     if (sessionRef.current) {
         try {
           const session = await sessionRef.current;
@@ -44,25 +44,21 @@ export const useVoiceAssistant = () => {
         sessionRef.current = null;
     }
 
-    // 2. Stop Microphone
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
 
-    // 3. Disconnect Audio Nodes
     if (processorRef.current) {
       processorRef.current.disconnect();
       processorRef.current = null;
     }
 
-    // 4. Stop Playback Queue
     sourcesRef.current.forEach(source => {
       try { source.stop(); } catch(e) {}
     });
     sourcesRef.current.clear();
     
-    // 5. Close Contexts
     if (inputContextRef.current?.state !== 'closed') {
       try { await inputContextRef.current?.close(); } catch(e) {}
     }
@@ -73,13 +69,19 @@ export const useVoiceAssistant = () => {
     inputContextRef.current = null;
     outputContextRef.current = null;
     
-    setIsActive(false);
-    setStatus('Ready to chat');
-    setVolume(0);
+    if (isMountedRef.current) {
+      setIsActive(false);
+      setStatus('Ready to chat');
+      setVolume(0);
+    }
   }, []);
 
   useEffect(() => {
-    return () => { cleanup(); };
+    isMountedRef.current = true;
+    return () => { 
+      isMountedRef.current = false;
+      cleanup(); 
+    };
   }, [cleanup]);
 
   /**
@@ -90,23 +92,21 @@ export const useVoiceAssistant = () => {
       setStatus('Connecting to Gemini Live...');
       const ai = getAIClient();
       
-      // Request User Permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!isMountedRef.current) return;
       streamRef.current = stream;
 
-      // Setup Audio Hardware (16k in / 24k out as per spec)
       const inputCtx = new AudioContextClass({ sampleRate: 16000 });
       const outputCtx = new AudioContextClass({ sampleRate: 24000 });
       inputContextRef.current = inputCtx;
       outputContextRef.current = outputCtx;
       nextStartTimeRef.current = 0;
 
-      // Connect to Live API
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        model: AI_MODELS.VOICE,
         callbacks: {
           onopen: () => {
-            if (!inputCtx) return;
+            if (!inputCtx || !isMountedRef.current) return;
             setIsActive(true);
             setStatus('I\'m listening...');
 
@@ -115,29 +115,29 @@ export const useVoiceAssistant = () => {
             processorRef.current = processor;
             
             processor.onaudioprocess = (e) => {
+              if (!isMountedRef.current) return;
               const data = e.inputBuffer.getChannelData(0);
               
-              // Local Volume Visualization
               let sum = 0;
               for(let i=0; i<data.length; i++) sum += data[i] * data[i];
               setVolume(Math.min(1, Math.sqrt(sum / data.length) * 10));
 
               const blob = createBlob(data);
-              // CRITICAL: Always use promise resolution to send input to avoid race conditions
-              sessionPromise.then(s => s.sendRealtimeInput({ media: blob }));
+              sessionPromise.then(s => {
+                if (isMountedRef.current) s.sendRealtimeInput({ media: blob });
+              });
             };
 
             source.connect(processor);
             processor.connect(inputCtx.destination);
           },
           onmessage: async (msg: LiveServerMessage) => {
-            // Process Output PCM Data
+            if (!isMountedRef.current) return;
+            
             const audioData = msg.serverContent?.modelTurn?.parts?.find(p => p.inlineData)?.inlineData?.data;
             if (audioData && outputContextRef.current) {
                setStatus('Gemini is speaking...');
                const audioCtx = outputContextRef.current;
-               
-               // Schedule for Gapless Playback
                nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioCtx.currentTime);
                
                const buffer = await decodeAudioData(decode(audioData), audioCtx, 24000, 1);
@@ -152,7 +152,6 @@ export const useVoiceAssistant = () => {
                nextStartTimeRef.current += buffer.duration;
             }
 
-            // Handle Interruption Signal
             if (msg.serverContent?.interrupted) {
               sourcesRef.current.forEach(s => {
                 try { s.stop(); } catch(e) {}
@@ -168,12 +167,14 @@ export const useVoiceAssistant = () => {
           },
           onerror: (e) => {
             logger.error('Session error', e);
-            setStatus('Connection error. Restarting...');
-            cleanup();
+            if (isMountedRef.current) {
+              setStatus('Connection error. Restarting...');
+              cleanup();
+            }
           },
           onclose: (e) => {
             logger.info('Session closed', e);
-            cleanup();
+            if (isMountedRef.current) cleanup();
           }
         },
         config: {
@@ -189,8 +190,10 @@ export const useVoiceAssistant = () => {
       
     } catch (err) {
       logger.error('Failed to start voice session', err);
-      setStatus('Microphone access denied.');
-      cleanup();
+      if (isMountedRef.current) {
+        setStatus('Microphone access denied.');
+        cleanup();
+      }
     }
   }, [cleanup]);
 

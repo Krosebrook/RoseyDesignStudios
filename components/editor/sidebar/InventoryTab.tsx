@@ -1,15 +1,37 @@
 
 import React from 'react';
-import { InventoryItem } from '../../../hooks/useEditorState';
-import { Card } from '../../common/UI';
-import { Sun, Droplets, ShoppingBag, Info, Leaf } from 'lucide-react';
+import { MaintenanceReport, MaintenanceTask } from '../../../types';
+import { Card, Button, Spinner } from '../../common/UI';
+import { Sun, Droplets, ShoppingBag, Info, Leaf, Sparkles, Calendar, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 
 interface InventoryTabProps {
-  inventory: InventoryItem[];
+  inventory: any[];
   gardenNeeds: any;
+  maintenanceReport: MaintenanceReport | null;
+  onGenerateReport: () => void;
+  isLoading: boolean;
 }
 
-export const InventoryTab: React.FC<InventoryTabProps> = ({ inventory, gardenNeeds }) => {
+const PriorityBadge = ({ priority }: { priority: MaintenanceTask['priority'] }) => {
+  const styles = {
+    High: 'bg-red-50 text-red-600 border-red-100',
+    Medium: 'bg-amber-50 text-amber-600 border-amber-100',
+    Low: 'bg-blue-50 text-blue-600 border-blue-100'
+  };
+  return (
+    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border ${styles[priority]}`}>
+      {priority}
+    </span>
+  );
+};
+
+export const InventoryTab: React.FC<InventoryTabProps> = ({ 
+  inventory, 
+  gardenNeeds, 
+  maintenanceReport, 
+  onGenerateReport,
+  isLoading 
+}) => {
   if (inventory.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-stone-50 h-full">
@@ -25,7 +47,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({ inventory, gardenNee
   return (
     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar h-full space-y-6">
       {/* Project Summary */}
-      <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white border-0">
+      <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white border-0 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
            <div className="bg-white/20 p-2 rounded-lg">
              <Leaf size={20} />
@@ -52,10 +74,76 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({ inventory, gardenNee
         </div>
       </Card>
 
+      {/* Maintenance Report Section */}
+      <div className="space-y-4">
+        {!maintenanceReport ? (
+          <div className="bg-white rounded-2xl border-2 border-dashed border-stone-200 p-6 text-center">
+            <Sparkles size={24} className="mx-auto mb-3 text-primary-400" />
+            <h5 className="font-bold text-stone-800 text-sm mb-1">Maintenance Masterclass</h5>
+            <p className="text-xs text-stone-500 mb-4 px-2">Generate a personalized care schedule based on your specific plant selections.</p>
+            <Button 
+              size="sm" 
+              onClick={onGenerateReport} 
+              isLoading={isLoading}
+              className="w-full"
+              leftIcon={<Sparkles size={14} />}
+            >
+              Generate Care Schedule
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4 animate-fade-in">
+             <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Maintenance Plan</h4>
+                <button 
+                  onClick={onGenerateReport} 
+                  className="text-[10px] text-primary-600 font-black hover:underline uppercase"
+                >
+                  Refresh
+                </button>
+             </div>
+
+             <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+                <div className="flex items-center gap-2 text-indigo-700 mb-2">
+                  <Calendar size={16} />
+                  <span className="text-xs font-bold uppercase tracking-wider">Seasonal Advice</span>
+                </div>
+                <p className="text-xs text-indigo-900 leading-relaxed">{maintenanceReport.seasonalAdvice}</p>
+             </div>
+
+             <div className="space-y-3">
+                {maintenanceReport.tasks.map((t, i) => (
+                  <div key={i} className="bg-white border border-stone-100 rounded-xl p-3 shadow-sm hover:border-primary-200 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className="text-primary-500" />
+                        <span className="text-xs font-bold text-stone-800">{t.task}</span>
+                      </div>
+                      <PriorityBadge priority={t.priority} />
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-stone-400 mb-1.5 uppercase tracking-tighter">
+                       <Clock size={10} /> {t.frequency}
+                    </div>
+                    <p className="text-[11px] text-stone-600 leading-tight">{t.description}</p>
+                  </div>
+                ))}
+             </div>
+
+             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <div className="flex items-center gap-2 text-blue-700 mb-2">
+                  <Droplets size={16} />
+                  <span className="text-xs font-bold uppercase tracking-wider">Irrigation Strategy</span>
+                </div>
+                <p className="text-xs text-blue-900 leading-relaxed italic">"{maintenanceReport.waterSchedule}"</p>
+             </div>
+          </div>
+        )}
+      </div>
+
       {/* Item List */}
-      <div>
+      <div className="pt-4">
         <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mb-3 px-1">Bill of Materials</h4>
-        <div className="space-y-2">
+        <div className="space-y-2 pb-10">
           {inventory.map((item) => (
             <div key={item.plant.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-stone-100 hover:border-primary-200 transition-colors shadow-sm group">
                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-stone-100">
@@ -81,15 +169,15 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({ inventory, gardenNee
           ))}
         </div>
       </div>
-
-      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
-         <Info size={16} className="text-amber-600 shrink-0" />
-         <p className="text-[11px] text-amber-900 leading-relaxed italic">
-           Quantities are estimated based on your canvas placement. Ensure proper spacing during actual planting for optimal growth.
-         </p>
-      </div>
       
-      <div className="pb-10" />
+      <div className="sticky bottom-0 bg-stone-50 p-4 border-t border-stone-200 -mx-4">
+          <div className="bg-amber-50 rounded-xl p-3 flex gap-3">
+            <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-amber-900 leading-tight italic">
+              AI maintenance advice is generalized. Always monitor local soil and weather conditions for precise care.
+            </p>
+          </div>
+      </div>
     </div>
   );
 };

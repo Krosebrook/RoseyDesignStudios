@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Sprout, PenTool, ClipboardList } from 'lucide-react';
-import { Plant, LoadingState } from '../types';
+import { Plant, LoadingState, MaintenanceReport } from '../types';
 import { ToolsTab } from './editor/sidebar/ToolsTab';
 import { PaletteTab } from './editor/sidebar/PaletteTab';
 import { InventoryTab } from './editor/sidebar/InventoryTab';
@@ -26,6 +26,8 @@ interface EditorSidebarProps {
   onOpenCamera: () => void;
   inventory: InventoryItem[];
   gardenNeeds: any;
+  maintenanceReport: MaintenanceReport | null;
+  onGenerateReport: () => void;
 }
 
 export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
@@ -83,6 +85,9 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
           <InventoryTab 
             inventory={props.inventory}
             gardenNeeds={props.gardenNeeds}
+            maintenanceReport={props.maintenanceReport}
+            onGenerateReport={props.onGenerateReport}
+            isLoading={props.loading.operation === 'reporting'}
           />
         )}
       </div>

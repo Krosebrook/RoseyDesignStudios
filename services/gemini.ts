@@ -57,6 +57,8 @@ export const searchGardeningTips = (query: string) =>
 
 // --- TIPS ---
 export const getSeasonalGardeningTip = AdvisoryService.getSeasonalGardeningTip;
+// Fix: Export generateMaintenanceReport so it can be used in hooks/useEditorState.ts
+export const generateMaintenanceReport = AdvisoryService.generateMaintenanceReport;
 
 // --- COMPLEX WORKFLOWS ---
 export const generatePlantImage = (plant: Plant, style?: string, lighting?: string) => 

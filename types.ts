@@ -23,7 +23,8 @@ export type OperationType =
   | 'uploading' 
   | 'analyzing' 
   | 'connecting' 
-  | 'retrying';
+  | 'retrying'
+  | 'reporting';
 
 export interface LoadingState {
   isLoading: boolean;
@@ -31,6 +32,20 @@ export interface LoadingState {
   message: string;
   error?: string | null;
   retryCount?: number;
+}
+
+export interface MaintenanceTask {
+  task: string;
+  frequency: string;
+  description: string;
+  priority: 'High' | 'Medium' | 'Low';
+}
+
+export interface MaintenanceReport {
+  seasonalAdvice: string;
+  tasks: MaintenanceTask[];
+  waterSchedule: string;
+  generatedAt: number;
 }
 
 /**
@@ -48,7 +63,6 @@ export type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
 export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture' | 'Feature';
 
-// Added 'Minimalist' to the GardenStyle union type to fix assignment error in data/plants.ts
 export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical' | 'Formal' | 'Woodland' | 'Minimalist';
 
 export interface Plant {

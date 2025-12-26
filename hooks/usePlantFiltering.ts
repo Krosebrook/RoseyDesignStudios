@@ -1,7 +1,7 @@
 
 import { useState, useMemo } from 'react';
 import { PLANTS } from '../data/plants';
-import { SunlightRequirement, WaterRequirement, Season, ItemCategory } from '../types';
+import { SunlightRequirement, WaterRequirement, Season, ItemCategory, GardenStyle } from '../types';
 
 export const usePlantFiltering = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -9,6 +9,7 @@ export const usePlantFiltering = () => {
   const [waterFilter, setWaterFilter] = useState<WaterRequirement | 'All'>('All');
   const [seasonFilter, setSeasonFilter] = useState<Season | 'All'>('All');
   const [categoryFilter, setCategoryFilter] = useState<ItemCategory | 'All'>('All');
+  const [styleFilters, setStyleFilters] = useState<GardenStyle[]>([]);
 
   const filteredPlants = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -19,26 +20,34 @@ export const usePlantFiltering = () => {
                           plant.category.toLowerCase().includes(query);
       
       const matchesCategory = categoryFilter === 'All' || plant.category === categoryFilter;
-      
-      // For non-plants, these specific filters should maybe be ignored or strictly matched if fields exist?
-      // For now, if a filter is active but the item doesn't have that field, it won't match (which is correct behavior for "Sunlight: Full Sun" -> don't show furniture)
-      // But if Filter is 'All', it passes.
-      
       const matchesSunlight = sunlightFilter === 'All' || plant.sunlight === sunlightFilter;
       const matchesWater = waterFilter === 'All' || plant.water === waterFilter;
       
       // Check seasons safely
       const matchesSeason = seasonFilter === 'All' || (plant.seasons && plant.seasons.includes(seasonFilter as Season));
 
-      return matchesSearch && matchesCategory && matchesSunlight && matchesWater && matchesSeason;
+      // Style filtering (Multi-select: Match if plant has any of the selected styles)
+      const matchesStyle = styleFilters.length === 0 || 
+                          (plant.styles && plant.styles.some(s => styleFilters.includes(s)));
+
+      return matchesSearch && matchesCategory && matchesSunlight && matchesWater && matchesSeason && matchesStyle;
     });
-  }, [searchQuery, sunlightFilter, waterFilter, seasonFilter, categoryFilter]);
+  }, [searchQuery, sunlightFilter, waterFilter, seasonFilter, categoryFilter, styleFilters]);
+
+  const toggleStyleFilter = (style: GardenStyle) => {
+    setStyleFilters(prev => 
+      prev.includes(style) 
+        ? prev.filter(s => s !== style) 
+        : [...prev, style]
+    );
+  };
 
   const clearFilters = () => {
     setSunlightFilter('All');
     setWaterFilter('All');
     setSeasonFilter('All');
     setCategoryFilter('All');
+    setStyleFilters([]);
     setSearchQuery('');
   };
 
@@ -46,7 +55,8 @@ export const usePlantFiltering = () => {
     sunlightFilter !== 'All',
     waterFilter !== 'All',
     seasonFilter !== 'All',
-    categoryFilter !== 'All'
+    categoryFilter !== 'All',
+    styleFilters.length > 0
   ].filter(Boolean).length;
 
   return {
@@ -60,6 +70,8 @@ export const usePlantFiltering = () => {
     setSeasonFilter,
     categoryFilter,
     setCategoryFilter,
+    styleFilters,
+    toggleStyleFilter,
     filteredPlants,
     clearFilters,
     activeFiltersCount
