@@ -48,9 +48,6 @@ export interface MaintenanceReport {
   generatedAt: number;
 }
 
-/**
- * Standard Result envelope for all service operations
- */
 export type Result<T> = 
   | { success: true; data: T; message?: string }
   | { success: false; error: Error; message: string; data?: undefined };
@@ -61,32 +58,47 @@ export type SunlightRequirement = 'Full Sun' | 'Partial Shade' | 'Full Shade';
 export type WaterRequirement = 'Drought-tolerant' | 'Moderate' | 'High';
 export type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
-export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture' | 'Feature';
+export type ItemCategory = 'Plant' | 'Water Feature' | 'Furniture' | 'Structure';
 
 export type GardenStyle = 'Cottage' | 'Modern' | 'Zen' | 'Xeriscape' | 'Tropical' | 'Formal' | 'Woodland' | 'Minimalist';
+
+export type PlantIconType = 
+  | 'leaf' 
+  | 'flower' 
+  | 'cactus' 
+  | 'tree' 
+  | 'grass' 
+  | 'furniture' 
+  | 'water' 
+  | 'structure' 
+  | 'feature'
+  | 'shrub'
+  | 'herb'
+  | 'succulent'
+  | 'vine';
 
 export interface Plant {
   id: string;
   name: string;
   scientificName: string; 
   description: string;
-  sunlight?: SunlightRequirement;
+  sunlight: SunlightRequirement; 
   water: WaterRequirement;
   seasons?: Season[];
   imageUrl: string;
   category: ItemCategory;
   styles?: GardenStyle[];
+  iconType?: PlantIconType;
 }
 
 export interface SavedDesign {
   currentImage: string;
   history: string[];
   timestamp: number;
+  name?: string;
+  lastPrompt?: string;
 }
 
-/**
- * Domain-level state for AI Workflows
- */
 export interface AIWorkflowState {
   generatedImages: Record<string, string[]>;
   generatingIds: Set<string>;

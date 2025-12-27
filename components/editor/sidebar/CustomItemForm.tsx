@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Plus, Sprout, Sun, Droplets, Calendar } from 'lucide-react';
 import { Button, Input } from '../../common/UI';
@@ -39,7 +38,8 @@ export const CustomItemForm: React.FC<CustomItemFormProps> = ({
     scientificName: details || 'Custom User Item',
     description: details || 'A custom item added by the user.',
     imageUrl: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80',
-    category: 'Feature',
+    // Fix: Changed 'Feature' to 'Plant' to match ItemCategory type
+    category: 'Plant',
     styles: [],
     sunlight,
     water,

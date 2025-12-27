@@ -52,7 +52,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const recoveredImage: GeneratedImage = {
       id: `resume-${Date.now()}`,
       dataUrl: saved.currentImage,
-      prompt: 'Resumed Project',
+      prompt: saved.lastPrompt || 'Resumed Project',
       timestamp: saved.timestamp
     };
     setCurrentImage(recoveredImage);

@@ -44,6 +44,9 @@ export const useEditorState = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [maintenanceReport, setMaintenanceReport] = useState<MaintenanceReport | null>(null);
   
+  // Project metadata
+  const [projectName, setProjectName] = useState('My Garden Design');
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useLoadingCycle(loading, setLoading, EDIT_LOADING_MESSAGES, 'editing');
@@ -63,7 +66,8 @@ export const useEditorState = () => {
         scientificName: 'Custom Entry',
         description: 'User-defined item',
         imageUrl: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80',
-        category: 'Feature',
+        category: 'Plant',
+        sunlight: 'Full Sun',
         water: 'Moderate'
       } as Plant;
       
@@ -97,6 +101,17 @@ export const useEditorState = () => {
       markerManager.clearMarkers();
       setMaintenanceReport(null);
       setIsDirty(false);
+      
+      // If we resumed, it might have a name
+      const saved = localStorage.getItem('dreamGarden_saved');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.currentImage === initialImage.dataUrl && parsed.name) {
+            setProjectName(parsed.name);
+          }
+        } catch(e) {}
+      }
     }
   }, [initialImage?.id]);
 
@@ -153,8 +168,10 @@ export const useEditorState = () => {
   }, [historyManager, markerManager]);
 
   const handleSaveProject = useCallback(() => {
-    storageManager.saveProject(historyManager.currentImage, historyManager.history);
-  }, [storageManager, historyManager]);
+    // We save the last prompt from initial image or a fallback
+    const lastPromptUsed = initialImage?.prompt || 'Custom Edit';
+    storageManager.saveProject(historyManager.currentImage, historyManager.history, projectName, lastPromptUsed);
+  }, [storageManager, historyManager, projectName, initialImage]);
 
   const handleEdit = useCallback(async () => {
     const currentImg = historyManager.currentImage;
@@ -173,7 +190,7 @@ export const useEditorState = () => {
       historyManager.pushToHistory(result.data);
       setEditPrompt('');
       markerManager.clearMarkers();
-      setMaintenanceReport(null); // Clear report as the design changed
+      setMaintenanceReport(null); 
       setLoading({ isLoading: false, operation: 'idle', message: '' });
       setIsDirty(true);
     } catch (err: any) {
@@ -226,7 +243,7 @@ export const useEditorState = () => {
       
       updatePromptWithInstruction(instruction);
       markerManager.addMarker(plantName, xPercent, yPercent, instruction);
-      setMaintenanceReport(null); // Data has changed
+      setMaintenanceReport(null); 
     }
   }, [historyManager.currentImage, loading.isLoading, updatePromptWithInstruction, markerManager]);
 
@@ -260,6 +277,8 @@ export const useEditorState = () => {
     setIsDraggingOver,
     isDirty,
     maintenanceReport,
+    projectName,
+    setProjectName,
     saveStatus: storageManager.saveStatus,
     saveError: storageManager.error,
     lastSaved: storageManager.lastSaved,

@@ -1,7 +1,7 @@
 
 # DreamGarden AI
 
-![Version](https://img.shields.io/badge/version-1.4.0-blue)
+![Version](https://img.shields.io/badge/version-1.5.0-blue)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-green)
 
@@ -10,8 +10,9 @@
 ## 🚀 Key Features
 
 ### 🎨 Generative Design
-- **Imagen 4.0 Integration:** Create award-winning, photorealistic garden layouts from text.
+- **Gemini 3 Pro Image Integration:** Create stunning, high-resolution (up to 4K) garden layouts from text.
 - **Aspect Ratio Control:** Switch seamlessly between Square (1:1), Portrait (9:16), and Landscape (16:9).
+- **Pro Features:** Native support for search grounding in generation and complex composition planning.
 
 ### ✏️ AI Magic Editor
 - **Conversational Editing:** Use **Gemini 2.5 Flash** to modify images (e.g., "Add a stone path", "Make it sunset").
@@ -27,42 +28,32 @@
 - **Search Grounding:** AI advice is cross-referenced with Google Search for accuracy.
 
 ### 🗣️ Voice Assistant
-- **Live API Integration:** Talk to your garden assistant in real-time for advice and ideas.
+- **Live API Integration:** Talk to your garden assistant in real-time for advice and ideas via low-latency PCM streaming.
 
 ## 🏗️ Technical Architecture
 
-This project uses a modular, domain-driven architecture.
+This project uses a modular, domain-driven architecture focused on resilience and AI model flexibility.
 
 ### Directory Structure
 ```
 /src
-  /components    # UI Components (Presentational)
+  /components    # UI Components (Atomic Design inspired)
   /services      # API Layer
-    /ai          # Modular AI Logic
-      /imaging.ts  # Image Gen/Edit (Imagen, Flash Image)
-      /video.ts    # Video Gen (Veo)
-      /analysis.ts # Vision & Search
-      /advisory.ts # Text/Reasoning
-      /config.ts   # Client & Auth
-    /gemini.ts   # Facade Service (Aggregator)
-  /hooks         # Business Logic & State
-  /utils         # Pure Functions (Logger, Retry, Errors)
+    /ai          # Modular AI Logic (Imaging, Video, Analysis)
+    /gemini.ts   # Facade Service (Unified Entry Point)
+  /hooks         # Shared Business Logic
+  /utils         # Infrastructure (Logger, Retry, Errors)
 ```
 
 ### Core Technologies
 - **Frontend:** React 19, TypeScript, Tailwind CSS
 - **AI Models:**
-  - `gemini-2.5-flash` (Text/Speed)
-  - `gemini-2.5-flash-image` (Editing)
-  - `imagen-4.0-generate-001` (Generation)
+  - `gemini-3-flash-preview` (Core Logic / Vision)
+  - `gemini-3-pro-preview` (Complex Reasoning / Thinking)
+  - `gemini-2.5-flash-image` (Fast Editing)
+  - `gemini-3-pro-image-preview` (Ultra High-Res Generation)
   - `veo-3.1-fast-generate-preview` (Video)
-  - `gemini-3-pro-preview` (Vision/Reasoning)
-  - `gemini-2.5-flash-native-audio` (Live Voice)
-
-### Observability & Resilience
-- **Structured Logging:** All services use `utils/logger.ts`.
-- **Automatic Retries:** AI calls use exponential backoff (`utils/retry.ts`).
-- **Concurrency Control:** Plant generation uses a queue to prevent rate limiting.
+  - `gemini-2.5-flash-native-audio` (Live API)
 
 ## 🛠️ Setup & Development
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plant } from '../types';
-import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, Droplet, PlusCircle, Settings2, X, Flower } from 'lucide-react';
+import { Plant, PlantIconType } from '../types';
+import { Sprout, Sun, Droplets, Calendar, Sparkles, ImagePlus, Armchair, PlusCircle, Settings2, X, Flower, Leaf, TreePine, Waves, Box, Hammer, Trees, Flower2, Clover, Wind } from 'lucide-react';
 import { GENERATION_STYLES, GENERATION_LIGHTING } from '../data/constants';
 
 interface PlantDetailPopoverProps {
@@ -16,6 +16,35 @@ interface PlantDetailPopoverProps {
   defaultShowOptions?: boolean;
   onClose?: () => void;
 }
+
+const getPlantIcon = (type?: PlantIconType, size: number = 18) => {
+  switch (type) {
+    case 'leaf': return <Leaf size={size} />;
+    case 'flower': return <Flower size={size} />;
+    case 'cactus': return <Sprout size={size} />;
+    case 'shrub': return <Trees size={size} />;
+    case 'tree': return <TreePine size={size} />;
+    case 'grass': return <Wind size={size} />;
+    case 'herb': return <Flower2 size={size} />;
+    case 'succulent': return <Clover size={size} />;
+    case 'vine': return <Wind size={size} />;
+    case 'furniture': return <Armchair size={size} />;
+    case 'water': return <Waves size={size} />;
+    case 'structure': return <Hammer size={size} />;
+    case 'feature': return <Box size={size} />;
+    default: return <Sprout size={size} />;
+  }
+};
+
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'Plant': return 'text-emerald-500 bg-emerald-50';
+    case 'Structure': return 'text-indigo-500 bg-indigo-50';
+    case 'Furniture': return 'text-amber-500 bg-amber-50';
+    case 'Water Feature': return 'text-blue-500 bg-blue-50';
+    default: return 'text-stone-500 bg-stone-50';
+  }
+};
 
 export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({ 
   plant, 
@@ -77,6 +106,8 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
     }
   };
 
+  const categoryColor = getCategoryColor(plant.category);
+
   return (
     <div 
       ref={popoverRef}
@@ -94,15 +125,14 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
       )}
 
       <div className="flex items-start justify-between mb-3 pr-6">
-        <div>
-          <h3 className="font-bold text-lg text-stone-900">{plant.name}</h3>
-          <p className="text-sm text-stone-500 italic font-serif">{plant.scientificName}</p>
-        </div>
-        <div className="bg-primary-50 p-2 rounded-full text-primary-600">
-           {plant.category === 'Furniture' ? <Armchair size={18} /> : 
-            plant.category === 'Water Feature' ? <Droplet size={18} /> : 
-            plant.category === 'Feature' ? <Flower size={18} /> :
-            <Sprout size={18} />}
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl shadow-sm ${categoryColor}`}>
+             {getPlantIcon(plant.iconType, 20)}
+          </div>
+          <div>
+            <h3 className="font-bold text-lg text-stone-900">{plant.name}</h3>
+            <p className="text-sm text-stone-500 italic font-serif">{plant.scientificName}</p>
+          </div>
         </div>
       </div>
       
@@ -179,25 +209,10 @@ export const PlantDetailPopover: React.FC<PlantDetailPopoverProps> = ({
              </button>
           </div>
         )}
-        
-        {/* Simple button if options hidden */}
-        {!showGenOptions && onGenerateImage && (
-            <div className="mt-2 pointer-events-auto">
-               <button 
-                  onClick={() => onGenerateImage()}
-                  disabled={isGeneratingImage}
-                  className="text-[10px] flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-medium transition-colors border border-amber-100"
-                  title="Generate a surprise high-resolution variation with randomized settings."
-                >
-                    {isGeneratingImage ? <span className="animate-spin">⏳</span> : <ImagePlus size={10} />}
-                    {isGeneratingImage ? 'Generating...' : 'New Image (Random)'}
-                </button>
-            </div>
-        )}
       </div>
       
       {/* Care Requirements Section */}
-      {(plant.category === 'Plant' || plant.category === 'Feature') && plant.sunlight && plant.water && plant.seasons ? (
+      {(plant.category === 'Plant' || plant.category === 'Structure') && plant.sunlight && plant.water && plant.seasons ? (
           <div className="mt-4 pt-4 border-t border-stone-100">
             <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <Sprout size={12} className="text-primary-500" /> 

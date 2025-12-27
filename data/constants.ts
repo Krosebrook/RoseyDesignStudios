@@ -3,9 +3,11 @@ export const AI_MODELS = {
   BASIC_TEXT: 'gemini-3-flash-preview',
   COMPLEX_TEXT: 'gemini-3-pro-preview',
   FAST_IMAGE: 'gemini-2.5-flash-image',
-  HIGH_RES_IMAGE: 'imagen-4.0-generate-001',
-  VIDEO: 'veo-3.1-fast-generate-preview',
-  VOICE: 'gemini-2.5-flash-native-audio-preview-09-2025'
+  PRO_IMAGE: 'gemini-3-pro-image-preview',
+  IMAGEN_4: 'imagen-4.0-generate-001',
+  VIDEO_FAST: 'veo-3.1-fast-generate-preview',
+  VIDEO_HIGH: 'veo-3.1-generate-preview',
+  VOICE_LIVE: 'gemini-2.5-flash-native-audio-preview-09-2025'
 } as const;
 
 export const GENERATION_ANGLES = [

@@ -8,7 +8,7 @@ export const useProjectStorage = () => {
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const saveProject = useCallback(async (currentImage: string | null, history: string[]) => {
+  const saveProject = useCallback(async (currentImage: string | null, history: string[], name?: string, lastPrompt?: string) => {
     if (!currentImage) return;
     
     setSaveStatus('saving');
@@ -18,8 +18,8 @@ export const useProjectStorage = () => {
       // Compress the current image to ensure it fits in LocalStorage
       const compressedImage = await compressImage(currentImage, 0.7, 1024);
       
-      // Compress history images (limit to last 5 to be safe with storage limits)
-      const historyToSave = history.slice(-5);
+      // Compress history images (limit to last 3 to be safe with storage limits)
+      const historyToSave = history.slice(-3);
       const compressedHistory = await Promise.all(
         historyToSave.map(img => compressImage(img, 0.7, 1024))
       );
@@ -28,7 +28,9 @@ export const useProjectStorage = () => {
       const savedData: SavedDesign = {
         currentImage: compressedImage,
         history: compressedHistory,
-        timestamp
+        timestamp,
+        name,
+        lastPrompt
       };
       
       try {

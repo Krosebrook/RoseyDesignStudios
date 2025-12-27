@@ -5,7 +5,7 @@ import { EditorSidebar } from './EditorSidebar';
 import { EditorCanvas } from './EditorCanvas';
 import { CameraModal } from './CameraModal';
 import { Button } from './common/UI';
-import { Save, Check, Clock, AlertCircle, Circle } from 'lucide-react';
+import { Save, Check, Clock, AlertCircle, Edit2 } from 'lucide-react';
 import { PLANTS } from '../data/plants';
 import { Plant } from '../types';
 
@@ -13,8 +13,9 @@ export const Editor: React.FC = () => {
   const editor = useEditorState();
   const [plantSearch, setPlantSearch] = React.useState('');
   const [customItems, setCustomItems] = useState<Plant[]>([]);
+  const [isEditingName, setIsEditingName] = useState(false);
 
-  // Keyboard shortcuts moved to top level effect in Editor
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLElement && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
@@ -49,9 +50,28 @@ export const Editor: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6 w-full">
       {/* HEADER & SAVE */}
       <div className="mb-8 text-center flex flex-col md:flex-row items-center justify-center relative gap-4">
-        <div className="md:absolute md:left-0 md:right-0 md:text-center pointer-events-none">
-          <h2 className="text-3xl font-bold text-stone-800 mb-2 pointer-events-auto">AI Garden Editor</h2>
-          <p className="text-stone-600 pointer-events-auto">Upload a photo or use your design, then use text to make magic happen.</p>
+        <div className="md:absolute md:left-0 md:right-0 md:text-center flex flex-col items-center">
+          <div className="flex items-center gap-2 group">
+             {isEditingName ? (
+               <input 
+                 type="text"
+                 value={editor.projectName}
+                 onChange={(e) => editor.setProjectName(e.target.value)}
+                 onBlur={() => setIsEditingName(false)}
+                 onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+                 className="text-3xl font-bold text-stone-800 text-center bg-transparent border-b-2 border-primary-500 outline-none"
+                 autoFocus
+               />
+             ) : (
+               <>
+                 <h2 className="text-3xl font-bold text-stone-800 tracking-tight">{editor.projectName}</h2>
+                 <button onClick={() => setIsEditingName(true)} className="text-stone-300 hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-all">
+                    <Edit2 size={16} />
+                 </button>
+               </>
+             )}
+          </div>
+          <p className="text-stone-600 mt-1">Upload a photo or use your design, then use text to make magic happen.</p>
         </div>
         
         <div className="md:ml-auto md:relative z-10 flex flex-col items-end gap-1">
@@ -60,7 +80,7 @@ export const Editor: React.FC = () => {
                onClick={editor.handleSaveProject}
                disabled={!editor.currentImage || editor.saveStatus === 'saving'}
                variant={editor.saveStatus === 'saved' ? 'primary' : 'secondary'}
-               className={`transition-all duration-300 ${editor.saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : 'bg-stone-900 hover:bg-stone-800'}`}
+               className={`transition-all duration-300 min-w-[140px] ${editor.saveStatus === 'saved' ? 'bg-green-600 hover:bg-green-700' : 'bg-stone-900 hover:bg-stone-800'}`}
                leftIcon={editor.saveStatus === 'saved' ? <Check size={18} /> : editor.saveStatus === 'saving' ? undefined : <Save size={18} />}
                isLoading={editor.saveStatus === 'saving'}
              >

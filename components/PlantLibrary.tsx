@@ -9,7 +9,7 @@ import { PlantCard } from './PlantCard';
 import { PlantFilters } from './PlantFilters';
 import { PlantDetailPopover } from './PlantDetailPopover';
 import { SeasonalSpotlight } from './SeasonalSpotlight';
-import { Search, Sparkles, Loader2 } from 'lucide-react';
+import { Search, Sparkles, Loader2, Wand2 } from 'lucide-react';
 
 export const PlantLibrary: React.FC = () => {
   const { handleAddToDesign } = useApp();
@@ -17,7 +17,6 @@ export const PlantLibrary: React.FC = () => {
   const { filteredPlants, clearFilters } = filters;
   const [showFilters, setShowFilters] = useState(false);
   
-  const [hoveredPlantData, setHoveredPlantData] = useState<{ plant: Plant; rect: DOMRect } | null>(null);
   const [activePopover, setActivePopover] = useState<{ plant: Plant; rect: DOMRect; showOptions: boolean } | null>(null);
 
   const { 
@@ -30,41 +29,57 @@ export const PlantLibrary: React.FC = () => {
     pendingCount
   } = usePlantAI();
 
-  // Robustly trigger high-resolution generation for plants missing AI visuals on mount
+  // Robustly trigger background tasks for missing AI content
   const hasCheckedAutoVisuals = useRef(false);
   useEffect(() => {
     if (hasCheckedAutoVisuals.current) return;
     
-    let triggeredCount = 0;
+    let visualTriggers = 0;
+    let descTriggers = 0;
+
     PLANTS.forEach(plant => {
-      const hasGeneratedImage = generatedImages[plant.id] && generatedImages[plant.id].length > 0;
-      const isCurrentlyProcessing = generatingIds.has(plant.id);
-      
-      if (!hasGeneratedImage && !isCurrentlyProcessing && triggeredCount < 5) { // Throttle initial burst
+      // Trigger images (max 3 at once for background)
+      const hasImages = generatedImages[plant.id] && generatedImages[plant.id].length > 0;
+      if (!hasImages && !generatingIds.has(plant.id) && visualTriggers < 3) {
         generateImage(plant);
-        triggeredCount++;
+        visualTriggers++;
+      }
+
+      // Trigger descriptions (max 5 at once for background)
+      const hasEnhancedDesc = !!enhancedDescriptions[plant.id];
+      if (!hasEnhancedDesc && !enhancingDescIds.has(plant.id) && descTriggers < 5) {
+        enhanceDescription(plant);
+        descTriggers++;
       }
     });
     
     hasCheckedAutoVisuals.current = true;
-  }, [generateImage, generatedImages, generatingIds]);
+  }, [generateImage, enhanceDescription, generatedImages, generatingIds, enhancedDescriptions, enhancingDescIds]);
 
   const handleGenerateAIImage = (e?: React.MouseEvent, plant?: Plant, style?: string, lighting?: string) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    const targetPlant = plant || activePopover?.plant || hoveredPlantData?.plant;
+    const targetPlant = plant || activePopover?.plant;
     if (targetPlant) {
       generateImage(targetPlant, style, lighting);
     }
   };
   
-  const handleGenerateAll = () => {
+  const handleGenerateAllVisuals = () => {
     filteredPlants.forEach(plant => {
       const hasImages = generatedImages[plant.id] && generatedImages[plant.id].length > 0;
       if (!generatingIds.has(plant.id) && !hasImages) {
         generateImage(plant);
+      }
+    });
+  };
+
+  const handleEnhanceAllDescriptions = () => {
+    filteredPlants.forEach(plant => {
+      if (!enhancedDescriptions[plant.id] && !enhancingDescIds.has(plant.id)) {
+        enhanceDescription(plant);
       }
     });
   };
@@ -74,7 +89,7 @@ export const PlantLibrary: React.FC = () => {
         e.preventDefault();
         e.stopPropagation();
     }
-    const targetPlant = plant || activePopover?.plant || hoveredPlantData?.plant;
+    const targetPlant = plant || activePopover?.plant;
     if (targetPlant) {
       enhanceDescription(targetPlant);
     }
@@ -85,29 +100,15 @@ export const PlantLibrary: React.FC = () => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
     setActivePopover({ plant, rect, showOptions: true });
-    setHoveredPlantData(null);
   };
 
-  const handleMouseEnter = (e: React.MouseEvent, plant: Plant) => {
-    if (!activePopover) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setHoveredPlantData({ plant, rect });
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredPlantData(null);
-  };
-
-  const popoverData = activePopover || (hoveredPlantData ? { ...hoveredPlantData, showOptions: false } : null);
-
-  const isBatchGenerating = pendingCount > 1;
+  const isBatchGenerating = pendingCount > 0;
 
   return (
     <div className="max-w-7xl mx-auto p-6 w-full relative">
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-stone-800 mb-2">Plant Database</h2>
-        <p className="text-stone-600">Explore our curated collection of garden favorites with unique AI visuals.</p>
+        <h2 className="text-3xl font-bold text-stone-800 mb-2 text-balance">Botanical Intelligence Library</h2>
+        <p className="text-stone-600">Our collection is continuously enhanced by Gemini with expert knowledge and unique AI variations.</p>
       </div>
 
       <SeasonalSpotlight 
@@ -126,14 +127,14 @@ export const PlantLibrary: React.FC = () => {
                      <Loader2 size={24} className="text-primary-600 animate-spin relative" />
                   </div>
                   <div>
-                      <p className="text-sm font-bold text-stone-800">Visualizing Library...</p>
-                      <p className="text-[10px] text-stone-500 font-medium uppercase tracking-wider">{pendingCount} unique variations pending</p>
+                      <p className="text-sm font-bold text-stone-800">Processing Library...</p>
+                      <p className="text-[10px] text-stone-500 font-black uppercase tracking-widest">{pendingCount} AI tasks remaining</p>
                   </div>
               </div>
           </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <div className="flex flex-col xl:flex-row gap-4 mb-8">
         <div className="flex-grow">
             <PlantFilters 
                 filters={filters} 
@@ -143,19 +144,33 @@ export const PlantLibrary: React.FC = () => {
         </div>
         
         {filteredPlants.length > 0 && (
-            <div className="flex-shrink-0 md:mt-0">
+            <div className="flex-shrink-0 flex flex-wrap gap-2 md:gap-3">
                <button 
-                  onClick={handleGenerateAll}
+                  onClick={handleEnhanceAllDescriptions}
                   disabled={isBatchGenerating}
-                  className={`w-full md:w-auto px-5 py-3 rounded-2xl font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
+                  className={`flex-1 md:flex-none px-5 py-3 rounded-2xl font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
+                    isBatchGenerating 
+                        ? 'bg-stone-100 text-stone-400 cursor-not-allowed' 
+                        : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+                  }`}
+                  title="Generate expert botanical descriptions for the entire view"
+               >
+                  {isBatchGenerating ? <Loader2 size={18} className="animate-spin text-stone-300" /> : <Wand2 size={18} className="text-indigo-500" />}
+                  Refine Descriptions
+               </button>
+
+               <button 
+                  onClick={handleGenerateAllVisuals}
+                  disabled={isBatchGenerating}
+                  className={`flex-1 md:flex-none px-5 py-3 rounded-2xl font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
                     isBatchGenerating 
                         ? 'bg-stone-100 text-stone-400 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 hover:shadow-lg text-white'
                   }`}
-                  title="Generate high-resolution AI visuals for all missing items"
+                  title="Generate unique AI variations for all missing visuals"
                >
-                  {isBatchGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                  {isBatchGenerating ? 'Processing...' : 'Visualize Library'}
+                  {isBatchGenerating ? <Loader2 size={18} className="animate-spin text-white/50" /> : <Sparkles size={18} />}
+                  Visualize Library
                </button>
             </div>
         )}
@@ -167,8 +182,6 @@ export const PlantLibrary: React.FC = () => {
             <div 
               key={plant.id} 
               className="relative"
-              onMouseEnter={(e) => handleMouseEnter(e, plant)}
-              onMouseLeave={handleMouseLeave}
             >
               <PlantCard 
                 plant={plant}
@@ -194,8 +207,8 @@ export const PlantLibrary: React.FC = () => {
           <div className="bg-stone-200 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search size={32} className="text-stone-400" />
           </div>
-          <h3 className="text-xl font-bold text-stone-800 mb-2">No plants found</h3>
-          <p className="text-stone-500 max-w-xs mx-auto">We couldn't find any plants matching your specific filters.</p>
+          <h3 className="text-xl font-bold text-stone-800 mb-2">No items match</h3>
+          <p className="text-stone-500 max-w-xs mx-auto">Try adjusting your filters to explore our botanical collection.</p>
           <button 
             onClick={clearFilters}
             className="mt-6 px-6 py-2 bg-white border border-stone-300 rounded-lg text-stone-700 font-medium hover:bg-stone-50 transition-colors shadow-sm"
@@ -205,18 +218,18 @@ export const PlantLibrary: React.FC = () => {
         </div>
       )}
 
-      {popoverData && (
+      {activePopover && (
         <PlantDetailPopover 
-          plant={popoverData.plant} 
-          rect={popoverData.rect}
-          enhancedDescription={enhancedDescriptions[popoverData.plant.id]}
-          isEnhancing={enhancingDescIds.has(popoverData.plant.id)}
-          onEnhance={() => handleEnhanceDescription(undefined, popoverData.plant)}
-          isGeneratingImage={generatingIds.has(popoverData.plant.id)}
-          onGenerateImage={(style, lighting) => handleGenerateAIImage(undefined, popoverData.plant, style, lighting)}
+          plant={activePopover.plant} 
+          rect={activePopover.rect}
+          enhancedDescription={enhancedDescriptions[activePopover.plant.id]}
+          isEnhancing={enhancingDescIds.has(activePopover.plant.id)}
+          onEnhance={() => handleEnhanceDescription(undefined, activePopover.plant)}
+          isGeneratingImage={generatingIds.has(activePopover.plant.id)}
+          onGenerateImage={(style, lighting) => handleGenerateAIImage(undefined, activePopover.plant, style, lighting)}
           onAddToDesign={handleAddToDesign}
-          defaultShowOptions={popoverData.showOptions}
-          onClose={activePopover ? () => setActivePopover(null) : undefined}
+          defaultShowOptions={activePopover.showOptions}
+          onClose={() => setActivePopover(null)}
         />
       )}
     </div>

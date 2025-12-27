@@ -6,7 +6,7 @@ import { createLogger } from "../../utils/logger";
 import { PromptService } from "../prompts";
 import { ImagingService } from "./imaging";
 import { getAI } from "./config";
-import { GENERATION_STYLES } from "../../data/constants";
+import { AI_MODELS, GENERATION_STYLES } from "../../data/constants";
 
 const logger = createLogger('AI:Workflows');
 
@@ -16,6 +16,7 @@ const logger = createLogger('AI:Workflows');
 export class WorkflowService {
   /**
    * Generates a high-resolution, stylized plant image using a two-stage planning pipeline.
+   * Utilizes Gemini 3 Pro Image for the final render.
    */
   static async executePlantGenerationWorkflow(
     plant: Plant,
@@ -33,7 +34,7 @@ export class WorkflowService {
       ].filter(Boolean).join('. ');
 
       const planResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-lite-latest',
+        model: 'gemini-flash-lite-latest',
         contents: PromptService.buildCompositionPlanPrompt(plant.name, plant.description, envContext, { style, lighting }),
         config: {
           responseMimeType: 'application/json',
@@ -61,8 +62,8 @@ export class WorkflowService {
         seed: Date.now()
       });
 
-      // Step 3: Execute imaging with the specialized imaging model
-      const dataUrl = await ImagingService.generatePlantVariation(refinedPrompt);
+      // Step 3: Execute high-fidelity imaging with the Pro Image model
+      const dataUrl = await ImagingService.generateHighQualityImage(refinedPrompt, '1:1', '2K');
       return { success: true, data: dataUrl };
 
     } catch (error: any) {
@@ -87,7 +88,7 @@ export class WorkflowService {
       const prompt = PromptService.buildDescriptionEnhancementPrompt(plantName, currentDescription);
       
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: AI_MODELS.BASIC_TEXT,
         contents: prompt
       });
 

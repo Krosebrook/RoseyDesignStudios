@@ -103,7 +103,8 @@ export const useVoiceAssistant = () => {
       nextStartTimeRef.current = 0;
 
       const sessionPromise = ai.live.connect({
-        model: AI_MODELS.VOICE,
+        // Fix: Use AI_MODELS.VOICE_LIVE instead of AI_MODELS.VOICE to match definition in constants.ts
+        model: AI_MODELS.VOICE_LIVE,
         callbacks: {
           onopen: () => {
             if (!inputCtx || !isMountedRef.current) return;

@@ -3,11 +3,12 @@ import { Modality } from "@google/genai";
 import { AspectRatio } from "../../types";
 import { cleanBase64, getMimeType } from "../../utils/image";
 import { BaseService } from "./base";
+import { AI_MODELS } from "../../data/constants";
 
 /**
  * ImagingService handles all visual generation and editing.
  * Adheres to GenAI guidelines by prioritizing gemini-2.5-flash-image for editing/variation
- * and imagen-4.0-generate-001 for explicit high-fidelity generation.
+ * and gemini-3-pro-image-preview for high-fidelity generation.
  */
 export class ImagingService extends BaseService {
   
@@ -17,7 +18,7 @@ export class ImagingService extends BaseService {
   static async generateImage(prompt: string, aspectRatio: AspectRatio = '1:1'): Promise<string> {
     return this.execute("FlashImageGeneration", async (ai) => {
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
+        model: AI_MODELS.FAST_IMAGE,
         contents: `${prompt}, photorealistic landscape design, architectural render style, 8k resolution`,
         config: {
           imageConfig: { aspectRatio }
@@ -34,28 +35,31 @@ export class ImagingService extends BaseService {
    * Alias for generating a plant variation using the standard flash image model.
    */
   static async generatePlantVariation(prompt: string): Promise<string> {
-    // Variations are best handled by the fast, creative flash-image model
     return this.generateImage(prompt);
   }
 
   /**
-   * Generates high-fidelity images using Imagen 4.0.
+   * Generates high-fidelity images using Gemini 3 Pro Image Preview.
    */
-  static async generateHighQualityImage(prompt: string, aspectRatio: AspectRatio = '1:1'): Promise<string> {
-    return this.execute("ImagenGeneration", async (ai) => {
-      const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-001',
-        prompt: `${prompt}, award winning garden photography, highly detailed, 8k, professional lighting`,
+  static async generateHighQualityImage(prompt: string, aspectRatio: AspectRatio = '1:1', resolution: '1K' | '2K' | '4K' = '1K'): Promise<string> {
+    return this.execute("ProImageGeneration", async (ai) => {
+      const response = await ai.models.generateContent({
+        model: AI_MODELS.PRO_IMAGE,
+        contents: {
+          parts: [{ text: `${prompt}, award winning garden photography, highly detailed, 8k, professional lighting` }]
+        },
         config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          aspectRatio,
+          imageConfig: {
+            aspectRatio,
+            imageSize: resolution
+          }
         },
       });
 
-      const bytes = response.generatedImages?.[0]?.image?.imageBytes;
-      if (!bytes) throw new Error("No image bytes returned from Imagen");
-      return `data:image/jpeg;base64,${bytes}`;
+      // Gemini 3 Pro Image can return both text and image parts.
+      const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+      if (!part?.inlineData?.data) throw new Error("No image part found in Pro Image response");
+      return `data:image/png;base64,${part.inlineData.data}`;
     });
   }
 
@@ -68,7 +72,7 @@ export class ImagingService extends BaseService {
       const mimeType = getMimeType(base64Image);
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
+        model: AI_MODELS.FAST_IMAGE,
         contents: {
           parts: [
             { inlineData: { data, mimeType } },

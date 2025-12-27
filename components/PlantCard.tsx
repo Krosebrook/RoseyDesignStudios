@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { Plant } from '../types';
-import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Info, Wand2, Settings2, X, Image as ImageIcon } from 'lucide-react';
+import { Plant, PlantIconType } from '../types';
+import { Sun, Droplets, Calendar, Sparkles, PlusCircle, ChevronLeft, ChevronRight, GripVertical, Info, Wand2, Settings2, X, Image as ImageIcon, Leaf, Flower, TreePine, Sprout, Armchair, Waves, Box, Palette, Hammer, Trees, Flower2, Clover, Wind, Loader2 } from 'lucide-react';
 import { createDragGhost } from '../utils/ui';
 
 interface PlantCardProps {
@@ -18,6 +18,35 @@ interface PlantCardProps {
   isEnhancingDescription?: boolean;
   onCustomize?: (e: React.MouseEvent, plant: Plant) => void;
 }
+
+const getPlantIcon = (type?: PlantIconType, size: number = 18) => {
+  switch (type) {
+    case 'leaf': return <Leaf size={size} />;
+    case 'flower': return <Flower size={size} />;
+    case 'cactus': return <Sprout size={size} />;
+    case 'shrub': return <Trees size={size} />;
+    case 'tree': return <TreePine size={size} />;
+    case 'grass': return <Wind size={size} />;
+    case 'herb': return <Flower2 size={size} />;
+    case 'succulent': return <Clover size={size} />;
+    case 'vine': return <Wind size={size} />;
+    case 'furniture': return <Armchair size={size} />;
+    case 'water': return <Waves size={size} />;
+    case 'structure': return <Hammer size={size} />;
+    case 'feature': return <Box size={size} />;
+    default: return <Sprout size={size} />;
+  }
+};
+
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'Plant': return 'text-emerald-500 bg-emerald-50';
+    case 'Structure': return 'text-indigo-500 bg-indigo-50';
+    case 'Furniture': return 'text-amber-500 bg-amber-50';
+    case 'Water Feature': return 'text-blue-500 bg-blue-50';
+    default: return 'text-stone-500 bg-stone-50';
+  }
+};
 
 export const PlantCard: React.FC<PlantCardProps> = memo(({
   plant,
@@ -68,40 +97,86 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
 
   const hasAIVisual = images.length > 1;
 
+  const categoryColor = getCategoryColor(plant.category);
+
   // Rich Tooltip UI
   const RichTooltip = () => (
     <div 
-      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-72 bg-stone-900/95 backdrop-blur-xl rounded-2xl p-4 shadow-2xl border border-white/10 z-50 pointer-events-none transition-all duration-300 ${showTooltip ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
+      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-80 bg-stone-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border border-white/10 z-[60] pointer-events-none transition-all duration-300 ${showTooltip ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h4 className="font-bold text-white text-sm">{plant.name}</h4>
-          <p className="text-[10px] text-stone-400 italic">{plant.scientificName}</p>
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white/10 rounded-xl text-primary-400">
+            {getPlantIcon(plant.iconType, 20)}
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-base leading-tight">{plant.name}</h4>
+            <p className="text-[11px] text-stone-400 italic font-serif tracking-wide">{plant.scientificName}</p>
+          </div>
         </div>
         <div className="p-1.5 bg-white/10 rounded-lg">
-          <Info size={12} className="text-primary-400" />
+          <Info size={14} className="text-primary-400" />
         </div>
       </div>
       
-      <p className="text-[11px] text-stone-300 leading-relaxed mb-4 line-clamp-4">
+      <p className="text-[11px] text-stone-300 leading-relaxed mb-5 line-clamp-6">
         {enhancedDescription || plant.description}
       </p>
 
-      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
-        <div className="text-center">
-          <Sun size={12} className="mx-auto mb-1 text-amber-400" />
-          <p className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{plant.sunlight?.split(' ')[0] || 'Any'}</p>
+      <div className="space-y-4 pt-4 border-t border-white/10">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-amber-500/10 rounded-lg">
+              <Sun size={14} className="text-amber-400" />
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-stone-500 uppercase tracking-widest">Sunlight</p>
+              <p className="text-[10px] font-bold text-white">{plant.sunlight || 'Any'}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-500/10 rounded-lg">
+              <Droplets size={14} className="text-blue-400" />
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-stone-500 uppercase tracking-widest">Water</p>
+              <p className="text-[10px] font-bold text-white">{plant.water === 'Drought-tolerant' ? 'Low' : plant.water}</p>
+            </div>
+          </div>
         </div>
-        <div className="text-center border-x border-white/5">
-          <Droplets size={12} className="mx-auto mb-1 text-blue-400" />
-          <p className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">{plant.water === 'Drought-tolerant' ? 'Low' : plant.water}</p>
+
+        <div className="flex items-start gap-2">
+          <div className="p-1.5 bg-emerald-500/10 rounded-lg shrink-0">
+            <Calendar size={14} className="text-emerald-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[9px] font-black text-stone-500 uppercase tracking-widest">Active Seasons</p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {plant.seasons?.map(s => (
+                <span key={s} className="text-[9px] font-bold text-emerald-300 px-2 py-0.5 bg-emerald-500/5 rounded-full border border-emerald-500/20">{s}</span>
+              )) || <span className="text-[10px] font-bold text-stone-400">Year-round</span>}
+            </div>
+          </div>
         </div>
-        <div className="text-center">
-          <Calendar size={12} className="mx-auto mb-1 text-emerald-400" />
-          <p className="text-[8px] font-bold text-stone-400 uppercase tracking-tighter truncate px-1">{plant.seasons?.[0] || 'Year'}</p>
-        </div>
+
+        {plant.styles && plant.styles.length > 0 && (
+          <div className="flex items-start gap-2">
+            <div className="p-1.5 bg-pink-500/10 rounded-lg shrink-0">
+              <Palette size={14} className="text-pink-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[9px] font-black text-stone-500 uppercase tracking-widest">Suitable Styles</p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {plant.styles.map(s => (
+                  <span key={s} className="text-[9px] font-bold text-pink-300 px-2 py-0.5 bg-pink-500/5 rounded-full border border-pink-500/20">{s}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="absolute top-full left-1/2 -translate-x-1/2 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-stone-900/95" />
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-l-[10px] border-r-[10px] border-t-[10px] border-l-transparent border-r-transparent border-t-stone-900/95" />
     </div>
   );
 
@@ -132,7 +207,12 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
           </div>
         </div>
         <div className="p-2 flex items-center justify-between gap-1">
-          <p className="font-bold text-stone-800 text-[10px] truncate flex-1">{plant.name}</p>
+          <div className="flex items-center gap-1.5 truncate">
+            <span className={`shrink-0 p-1 rounded-md ${categoryColor.split(' ')[0]}`}>
+               {getPlantIcon(plant.iconType, 12)}
+            </span>
+            <p className="font-bold text-stone-800 text-[10px] truncate">{plant.name}</p>
+          </div>
           <GripVertical size={12} className="text-stone-300 group-hover:text-stone-500 transition-colors shrink-0" />
         </div>
       </div>
@@ -250,7 +330,12 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
       
       <div className="p-6 flex flex-col flex-grow">
         <div className="mb-4">
-            <h3 className="font-bold text-xl text-stone-900 leading-tight mb-1">{plant.name}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`p-1.5 rounded-xl shadow-sm ${categoryColor}`}>
+                {getPlantIcon(plant.iconType, 20)}
+              </span>
+              <h3 className="font-bold text-xl text-stone-900 leading-tight">{plant.name}</h3>
+            </div>
             <p className="text-[10px] text-stone-400 italic font-medium tracking-widest uppercase">{plant.scientificName}</p>
         </div>
         
@@ -270,16 +355,6 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
                   {isEnhancingDescription ? 'AI EXPANDING...' : 'ENHANCE WITH AI'}
                 </button>
              )}
-             
-             {!hasAIVisual && !isGenerating && (
-                <button
-                  onClick={(e) => onGenerateAI(e, plant)}
-                  className="text-[10px] text-amber-600 hover:text-amber-800 font-black flex items-center gap-1.5 transition-all group/gen"
-                >
-                   <Sparkles size={10} className="group-hover/gen:scale-125 transition-transform" />
-                   VISUALIZE WITH AI
-                </button>
-             )}
           </div>
         </div>
         
@@ -294,15 +369,37 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
           </div>
         </div>
 
-        {onAddToDesign && (
-          <button
-            onClick={() => onAddToDesign(plant.name)}
-            className="w-full py-3.5 px-6 bg-stone-900 hover:bg-black text-white rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-[0.98]"
-          >
-            <PlusCircle size={18} />
-            Add to Design
-          </button>
-        )}
+        <div className="space-y-2 mt-auto">
+          {/* Dedicated AI Generation Button when visual is missing */}
+          {!hasAIVisual && (
+            <button
+              onClick={(e) => onGenerateAI(e, plant)}
+              disabled={isGenerating}
+              className={`w-full py-3 px-6 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm border-2 ${
+                isGenerating 
+                  ? 'bg-stone-50 text-stone-400 border-stone-100 cursor-not-allowed' 
+                  : 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200'
+              }`}
+            >
+              {isGenerating ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Sparkles size={14} className="text-indigo-500" />
+              )}
+              {isGenerating ? 'Dreaming...' : 'Generate AI Visual'}
+            </button>
+          )}
+
+          {onAddToDesign && (
+            <button
+              onClick={() => onAddToDesign(plant.name)}
+              className="w-full py-3.5 px-6 bg-stone-900 hover:bg-black text-white rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-[0.98]"
+            >
+              <PlusCircle size={18} />
+              Add to Design
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

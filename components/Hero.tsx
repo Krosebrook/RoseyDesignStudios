@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AppMode, SavedDesign } from '../types';
-import { ArrowRight, Wand2, Upload, BookOpen, History, PlayCircle, Trash2 } from 'lucide-react';
+import { ArrowRight, Wand2, Upload, BookOpen, History, PlayCircle, Trash2, Sparkles } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 export const Hero: React.FC = () => {
@@ -41,7 +41,7 @@ export const Hero: React.FC = () => {
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center max-w-5xl mx-auto">
       <div className="mb-8 animate-fade-in-up">
         <span className="inline-block py-1 px-3 rounded-full bg-primary-100 text-primary-700 text-sm font-semibold mb-4">
-          Powered by Gemini 2.5 Flash
+          Powered by Gemini 3 series
         </span>
         <h1 className="text-5xl md:text-7xl font-bold text-stone-900 mb-6 tracking-tight">
           Design your <span className="text-primary-600">Dream Garden</span> in seconds.
@@ -70,11 +70,16 @@ export const Hero: React.FC = () => {
                          <History size={24} className="text-white drop-shadow-lg" />
                     </div>
                  </div>
-                 <div className="text-left py-2 min-w-0">
+                 <div className="text-left py-2 min-w-0 flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                        <p className="font-bold text-xl text-white truncate">Resume Design</p>
+                        <p className="font-bold text-xl text-white truncate">{savedDesign.name || 'Resume Design'}</p>
                         <span className="bg-primary-500 text-[10px] px-2.5 py-1 rounded-full uppercase tracking-widest font-black shadow-lg">Draft</span>
                     </div>
+                    {savedDesign.lastPrompt && (
+                        <p className="text-[10px] text-primary-300 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                           <Sparkles size={10} /> {savedDesign.lastPrompt.slice(0, 40)}...
+                        </p>
+                    )}
                     <p className="text-xs text-stone-400 font-medium">
                         Modified {new Date(savedDesign.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at {new Date(savedDesign.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -120,7 +125,7 @@ export const Hero: React.FC = () => {
           className="group relative overflow-hidden p-6 rounded-2xl bg-white border-2 border-stone-100 hover:border-indigo-200 shadow-sm hover:shadow-lg transition-all duration-300 text-left h-full flex flex-col justify-between"
         >
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Upload size={100} className="text-indigo-500" />
+            <Upload size={100} className="text-indigo-50" />
           </div>
           <div className="relative z-10">
             <div className="bg-indigo-100 w-10 h-10 rounded-lg flex items-center justify-center mb-4 text-indigo-600">
@@ -139,7 +144,7 @@ export const Hero: React.FC = () => {
           className="group relative overflow-hidden p-6 rounded-2xl bg-white border-2 border-stone-100 hover:border-amber-200 shadow-sm hover:shadow-lg transition-all duration-300 text-left h-full flex flex-col justify-between"
         >
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <BookOpen size={100} className="text-amber-500" />
+            <BookOpen size={100} className="text-amber-50" />
           </div>
           <div className="relative z-10">
             <div className="bg-amber-100 w-10 h-10 rounded-lg flex items-center justify-center mb-4 text-amber-600">

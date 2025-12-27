@@ -3,6 +3,7 @@ import { getAI } from "./config";
 import { cleanBase64, getMimeType } from "../../utils/image";
 import { createLogger } from "../../utils/logger";
 import { withRetry } from "../../utils/retry";
+import { AI_MODELS } from "../../data/constants";
 
 const logger = createLogger('AI:Analysis');
 
@@ -17,7 +18,7 @@ export const analyzeGardenImage = async (image: string, question: string): Promi
     const mimeType = getMimeType(image);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: AI_MODELS.BASIC_TEXT,
       contents: {
         parts: [
           { inlineData: { data: cleanData, mimeType } },
@@ -41,7 +42,7 @@ export const searchGardeningTips = async (query: string): Promise<{text: string,
     logger.info("Performing Grounded Search", { query });
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: AI_MODELS.BASIC_TEXT,
       contents: query,
       config: { tools: [{ googleSearch: {} }] },
     });
