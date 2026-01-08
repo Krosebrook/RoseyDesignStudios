@@ -99,7 +99,7 @@ export const PlantCard: React.FC<PlantCardProps> = memo(({
 
   const categoryColor = getCategoryColor(plant.category);
 
-  // Rich Tooltip UI
+  // Rich Tooltip UI - Shows detailed info on hover
   const RichTooltip = () => (
     <div 
       className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-80 bg-stone-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border border-white/10 z-[60] pointer-events-none transition-all duration-300 ${showTooltip ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
