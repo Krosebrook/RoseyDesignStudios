@@ -2,7 +2,8 @@
 import React from 'react';
 import { MaintenanceReport, MaintenanceTask } from '../../../types';
 import { Card, Button, Spinner } from '../../common/UI';
-import { Sun, Droplets, ShoppingBag, Info, Leaf, Sparkles, Calendar, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { Sun, Droplets, ShoppingBag, Info, Leaf, Sparkles, Calendar, CheckCircle2, Clock, AlertTriangle, FileOutput, Printer } from 'lucide-react';
+import { useEditorState } from '../../../hooks/useEditorState';
 
 interface InventoryTabProps {
   inventory: any[];
@@ -10,6 +11,8 @@ interface InventoryTabProps {
   maintenanceReport: MaintenanceReport | null;
   onGenerateReport: () => void;
   isLoading: boolean;
+  // Use 'any' or correct signature for optional handler if strict typing is difficult without changing parent
+  onExportProject?: () => void; 
 }
 
 const PriorityBadge = ({ priority }: { priority: MaintenanceTask['priority'] }) => {
@@ -30,7 +33,8 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
   gardenNeeds, 
   maintenanceReport, 
   onGenerateReport,
-  isLoading 
+  isLoading,
+  onExportProject
 }) => {
   if (inventory.length === 0) {
     return (
@@ -143,7 +147,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
       {/* Item List */}
       <div className="pt-4">
         <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mb-3 px-1">Bill of Materials</h4>
-        <div className="space-y-2 pb-10">
+        <div className="space-y-2 pb-6">
           {inventory.map((item) => (
             <div key={item.plant.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-stone-100 hover:border-primary-200 transition-colors shadow-sm group">
                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-stone-100">
@@ -170,7 +174,18 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
         </div>
       </div>
       
-      <div className="sticky bottom-0 bg-stone-50 p-4 border-t border-stone-200 -mx-4">
+      {/* Export Section */}
+      <div className="sticky bottom-0 bg-stone-50 p-4 border-t border-stone-200 -mx-4 space-y-3">
+          {onExportProject && (
+            <Button 
+                onClick={onExportProject}
+                className="w-full bg-stone-900 hover:bg-black"
+                leftIcon={<Printer size={16} />}
+            >
+                Export Blueprint
+            </Button>
+          )}
+
           <div className="bg-amber-50 rounded-xl p-3 flex gap-3">
             <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
             <p className="text-[10px] text-amber-900 leading-tight italic">

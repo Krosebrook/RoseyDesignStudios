@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 
 export interface PlantMarker {
@@ -21,6 +22,12 @@ export const useMarkers = () => {
     }]);
   }, []);
 
+  const updateMarker = useCallback((id: string, updates: Partial<PlantMarker>) => {
+    setMarkers(prev => prev.map(m => 
+      m.id === id ? { ...m, ...updates } : m
+    ));
+  }, []);
+
   const removeMarkerById = useCallback((id: string) => {
     const marker = markers.find(m => m.id === id);
     setMarkers(prev => prev.filter(m => m.id !== id));
@@ -35,6 +42,7 @@ export const useMarkers = () => {
     markers,
     setMarkers,
     addMarker,
+    updateMarker,
     removeMarkerById,
     clearMarkers
   };

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Filter, X, Sun, Droplets, Calendar, Layers, Palette, Check, LayoutGrid, CheckCircle2, Hammer, Sprout, Waves, Armchair, Flower2, Trees, Box } from 'lucide-react';
+import { Search, Filter, X, Sun, Droplets, Calendar, Layers, Palette, Check, LayoutGrid, CheckCircle2, Hammer, Sprout, Waves, Armchair } from 'lucide-react';
 import { usePlantFiltering } from '../hooks/usePlantFiltering';
 import { GardenStyle, ItemCategory } from '../types';
 
@@ -14,7 +14,7 @@ const GARDEN_STYLES: GardenStyle[] = [
   'Cottage', 'Modern', 'Zen', 'Xeriscape', 'Tropical', 'Formal', 'Woodland', 'Minimalist'
 ];
 
-const CATEGORIES: { value: ItemCategory; label: string; icon: any; color: string; bgColor: string }[] = [
+const CATEGORIES_WITH_ICONS: { value: ItemCategory; label: string; icon: any; color: string; bgColor: string }[] = [
   { value: 'Plant', label: 'Plants', icon: Sprout, color: 'text-emerald-500', bgColor: 'bg-emerald-50' },
   { value: 'Structure', label: 'Structures', icon: Hammer, color: 'text-indigo-500', bgColor: 'bg-indigo-50' },
   { value: 'Furniture', label: 'Furniture', icon: Armchair, color: 'text-amber-500', bgColor: 'bg-amber-50' },
@@ -147,7 +147,7 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
               </button>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {CATEGORIES.map(cat => {
+              {CATEGORIES_WITH_ICONS.map(cat => {
                 const Icon = cat.icon;
                 const isActive = categoryFilter === cat.value;
                 return (

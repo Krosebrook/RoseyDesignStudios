@@ -12,6 +12,7 @@ import { LoadingState, Plant, MaintenanceReport } from '../types';
 import { PromptService } from '../services/prompts';
 import { createLogger } from '../utils/logger';
 import { PLANTS } from '../data/plants';
+import { downloadBlueprint } from '../utils/export';
 
 const logger = createLogger('EditorState');
 
@@ -123,14 +124,20 @@ export const useEditorState = () => {
     }
   }, [historyManager.history.length, storageManager.saveStatus]);
 
-  const updatePromptWithInstruction = useCallback((instruction: string) => {
+  const updatePromptWithInstruction = useCallback((instruction: string, oldInstruction?: string) => {
     setEditPrompt(prev => {
-      const cleanPrev = prev.trim();
-      if (!cleanPrev) return instruction;
-      if (cleanPrev.includes(instruction)) return prev;
+      let current = prev.trim();
+      
+      // If updating, remove the old one first
+      if (oldInstruction && current.includes(oldInstruction)) {
+        current = current.replace(oldInstruction, '').replace(/\s\s+/g, ' ').trim();
+      }
 
-      const hasPunctuation = /[.!?,]$/.test(cleanPrev);
-      return `${cleanPrev}${hasPunctuation ? ' ' : '. '}${instruction}`;
+      if (!current) return instruction;
+      if (current.includes(instruction)) return current;
+
+      const hasPunctuation = /[.!?,]$/.test(current);
+      return `${current}${hasPunctuation ? ' ' : '. '}${instruction}`;
     });
     setActiveTab('tools');
   }, []);
@@ -168,10 +175,21 @@ export const useEditorState = () => {
   }, [historyManager, markerManager]);
 
   const handleSaveProject = useCallback(() => {
-    // We save the last prompt from initial image or a fallback
     const lastPromptUsed = initialImage?.prompt || 'Custom Edit';
     storageManager.saveProject(historyManager.currentImage, historyManager.history, projectName, lastPromptUsed);
   }, [storageManager, historyManager, projectName, initialImage]);
+
+  const handleExportProject = useCallback(() => {
+    if (!historyManager.currentImage) return;
+
+    downloadBlueprint({
+      name: projectName,
+      image: historyManager.currentImage,
+      inventory,
+      maintenance: maintenanceReport,
+      timestamp: Date.now()
+    });
+  }, [historyManager.currentImage, projectName, inventory, maintenanceReport]);
 
   const handleEdit = useCallback(async () => {
     const currentImg = historyManager.currentImage;
@@ -247,6 +265,32 @@ export const useEditorState = () => {
     }
   }, [historyManager.currentImage, loading.isLoading, updatePromptWithInstruction, markerManager]);
 
+  const handleMarkerMove = useCallback((id: string, xPercent: number, yPercent: number, containerWidth: number, containerHeight: number) => {
+    const marker = markerManager.markers.find(m => m.id === id);
+    if (!marker) return;
+
+    // Calculate new position description relative to container
+    // Convert percent back to pixels for the utility function (or refactor utility)
+    const x = (xPercent / 100) * containerWidth;
+    const y = (yPercent / 100) * containerHeight;
+    const location = getPositionDescription(x, y, containerWidth, containerHeight);
+    
+    // Create updated instruction
+    const newInstruction = `Add ${marker.name} ${location}`;
+    
+    // Update marker state
+    markerManager.updateMarker(id, {
+      x: xPercent,
+      y: yPercent,
+      instruction: newInstruction
+    });
+
+    // Update global prompt context (replace old instruction with new one)
+    updatePromptWithInstruction(newInstruction, marker.instruction);
+    setMaintenanceReport(null);
+    setIsDirty(true);
+  }, [markerManager, updatePromptWithInstruction]);
+
   const handleUndo = useCallback(() => {
     historyManager.undo();
     setMaintenanceReport(null);
@@ -287,9 +331,11 @@ export const useEditorState = () => {
     handleCameraCapture,
     handleEdit,
     handleSaveProject,
+    handleExportProject,
     handleUndo,
     handleRedo,
     handleDrop,
+    handleMarkerMove,
     updatePromptWithInstruction,
     handleGenerateReport,
     

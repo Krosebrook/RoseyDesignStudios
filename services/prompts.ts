@@ -97,14 +97,19 @@ export const PromptService = {
    */
   buildDescriptionEnhancementPrompt: (name: string, currentDesc: string): string => {
     return `
-      Write a detailed, evocative, and expert description for the plant "${name}". 
+      Role: Expert Botanist and Garden Designer.
+      Task: Write a detailed, evocative, and expert description for the plant "${name}". 
       Original Data: "${currentDesc}".
       
-      Objectives:
-      - Highlight aesthetic qualities (texture, color, bloom shape).
-      - Mention ideal landscape applications (e.g., "perfect for borders", "excellent groundcover").
-      - Keep it under 80 words.
-      - Tone: Sophisticated yet accessible.
+      Content Requirements:
+      1. Aesthetic Qualities: Vividly describe color, texture, form, and bloom characteristics.
+      2. Garden Styles: Explicitly mention suitable garden styles (e.g. Cottage, Modern, Zen, Xeriscape, etc).
+      3. Care & Placement: Briefly weave in key care requirements (sunlight, water) and ideal placement suggestions.
+      
+      Format:
+      - A single, cohesive paragraph.
+      - Approx 80-100 words.
+      - Tone: Sophisticated, inspiring, and expert.
     `;
   },
 

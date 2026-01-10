@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, memo } from 'react';
-import { Box, Layers, Undo2, Redo2, Download, CornerDownLeft, Sprout, X } from 'lucide-react';
+import React, { useState, useEffect, memo, useRef } from 'react';
+import { Box, Layers, Undo2, Redo2, Download, CornerDownLeft, Sprout, X, Move } from 'lucide-react';
 import { LoadingState } from '../types';
 import { use3DView } from '../hooks/use3DView';
 import { PerspectiveControls } from './editor/PerspectiveControls';
@@ -22,6 +22,7 @@ interface EditorCanvasProps {
   onDragLeave: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   onRemoveMarker: (id: string) => void;
+  onMoveMarker?: (id: string, x: number, y: number, w: number, h: number) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
@@ -30,7 +31,17 @@ interface EditorCanvasProps {
   currentIndex: number;
 }
 
-const Marker = memo(({ marker, is3D, onRemove }: { marker: PlantMarker, is3D: boolean, onRemove: (id: string) => void }) => (
+const Marker = memo(({ 
+  marker, 
+  is3D, 
+  onRemove,
+  onMouseDown 
+}: { 
+  marker: PlantMarker, 
+  is3D: boolean, 
+  onRemove: (id: string) => void,
+  onMouseDown: (e: React.MouseEvent, id: string) => void
+}) => (
   <div
     className="absolute group/marker z-20"
     style={{ 
@@ -49,14 +60,24 @@ const Marker = memo(({ marker, is3D, onRemove }: { marker: PlantMarker, is3D: bo
        <div className="absolute inset-[-40px] bg-black/10 rounded-full blur-xl scale-75 group-hover/marker:scale-125 transition-transform" />
     </div>
     
-    <button 
-      onClick={() => onRemove(marker.id)}
-      className="w-10 h-10 bg-white text-primary-600 rounded-full shadow-2xl group-hover/marker:shadow-primary-500/20 flex items-center justify-center border-2 border-primary-500 transition-all duration-300 group-hover/marker:scale-110 group-hover/marker:-translate-y-3 relative z-10 hover:bg-red-50 hover:border-red-500 hover:text-red-500"
-      title="Remove item"
+    <div 
+      className="relative cursor-move"
+      onMouseDown={(e) => onMouseDown(e, marker.id)}
     >
-      <span className="group-hover/marker:hidden"><Sprout size={18} /></span>
-      <span className="hidden group-hover/marker:block"><X size={18} /></span>
-    </button>
+        <div className="w-10 h-10 bg-white text-primary-600 rounded-full shadow-2xl group-hover/marker:shadow-primary-500/20 flex items-center justify-center border-2 border-primary-500 transition-all duration-300 group-hover/marker:scale-110 group-hover/marker:-translate-y-3 relative z-10 hover:bg-primary-50">
+          <span className="group-hover/marker:hidden"><Sprout size={18} /></span>
+          <span className="hidden group-hover/marker:block"><Move size={18} /></span>
+        </div>
+
+        {/* Delete button (small overlay) */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(marker.id); }}
+          className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover/marker:opacity-100 transition-opacity z-20 hover:bg-red-600"
+          title="Remove Item"
+        >
+          <X size={12} />
+        </button>
+    </div>
 
     <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 bg-stone-900/90 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-full shadow-2xl border border-white/10 whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-all duration-300 pointer-events-none z-20 translate-y-2 group-hover/marker:translate-y-0">
        <div className="flex items-center gap-2">
@@ -76,6 +97,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   onDragLeave,
   onDrop,
   onRemoveMarker,
+  onMoveMarker,
   onUndo,
   onRedo,
   canUndo,
@@ -85,10 +107,51 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 }) => {
   const [is3DMode, setIs3DMode] = useState(false);
   const view3D = use3DView(is3DMode, currentImage);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dragState, setDragState] = useState<{ id: string, startX: number, startY: number, initialMarkerX: number, initialMarkerY: number } | null>(null);
 
   useEffect(() => {
     if (!currentImage) setIs3DMode(false);
   }, [currentImage]);
+
+  // --- Drag Logic ---
+  const handleMarkerMouseDown = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevent 3D view rotation triggering
+    const marker = markers.find(m => m.id === id);
+    if (!marker) return;
+    
+    setDragState({
+      id,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialMarkerX: marker.x,
+      initialMarkerY: marker.y
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    // Priority to marker dragging
+    if (dragState && containerRef.current && onMoveMarker) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const deltaX = ((e.clientX - dragState.startX) / rect.width) * 100;
+      const deltaY = ((e.clientY - dragState.startY) / rect.height) * 100;
+      
+      const newX = Math.max(0, Math.min(100, dragState.initialMarkerX + deltaX));
+      const newY = Math.max(0, Math.min(100, dragState.initialMarkerY + deltaY));
+      
+      onMoveMarker(dragState.id, newX, newY, rect.width, rect.height);
+      return; // Stop 3D rotation if dragging marker
+    }
+
+    // Fallback to 3D rotation
+    if (is3DMode) {
+      view3D.handleMouseMove(e as any);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDragState(null);
+  };
 
   return (
     <div className="lg:col-span-8 flex flex-col h-full min-h-[600px]">
@@ -114,7 +177,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
         <div 
           className="flex-1 bg-stone-100 relative flex items-center justify-center overflow-hidden"
-          onMouseMove={view3D.handleMouseMove}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           style={{ perspective: '1500px' }}
         >
           {!currentImage ? (
@@ -127,7 +192,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
             </div>
           ) : (
             <div 
-              className={`relative w-full h-full flex items-center justify-center transition-all ${isDraggingOver ? 'bg-primary-50/20' : ''}`}
+              ref={containerRef}
+              className={`relative w-full h-full flex items-center justify-center transition-all ${isDraggingOver ? 'bg-primary-50/20' : ''} ${dragState ? 'cursor-grabbing' : 'cursor-default'}`}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
@@ -150,7 +216,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   )}
 
                   {markers.map(m => (
-                    <Marker key={m.id} marker={m} is3D={is3DMode} onRemove={onRemoveMarker} />
+                    <Marker 
+                      key={m.id} 
+                      marker={m} 
+                      is3D={is3DMode} 
+                      onRemove={onRemoveMarker} 
+                      onMouseDown={handleMarkerMouseDown}
+                    />
                   ))}
               </div>
               

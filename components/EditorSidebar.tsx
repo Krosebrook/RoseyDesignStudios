@@ -28,6 +28,8 @@ interface EditorSidebarProps {
   gardenNeeds: any;
   maintenanceReport: MaintenanceReport | null;
   onGenerateReport: () => void;
+  // Added export prop
+  onExportProject?: () => void;
 }
 
 export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
@@ -88,6 +90,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
             maintenanceReport={props.maintenanceReport}
             onGenerateReport={props.onGenerateReport}
             isLoading={props.loading.operation === 'reporting'}
+            onExportProject={props.onExportProject}
           />
         )}
       </div>

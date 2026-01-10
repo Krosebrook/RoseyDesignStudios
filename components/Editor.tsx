@@ -139,6 +139,7 @@ export const Editor: React.FC = () => {
           gardenNeeds={editor.gardenNeeds}
           maintenanceReport={editor.maintenanceReport}
           onGenerateReport={editor.handleGenerateReport}
+          onExportProject={editor.handleExportProject}
         />
         
         <EditorCanvas
@@ -156,6 +157,7 @@ export const Editor: React.FC = () => {
                  editor.setEditPrompt(newPrompt);
              }
           }}
+          onMoveMarker={editor.handleMarkerMove}
           onUndo={editor.handleUndo}
           onRedo={editor.handleRedo}
           canUndo={editor.historyManager.canUndo}
