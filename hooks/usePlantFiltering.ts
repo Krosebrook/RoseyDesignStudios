@@ -34,6 +34,30 @@ export const usePlantFiltering = () => {
     });
   }, [searchQuery, sunlightFilter, waterFilter, seasonFilter, categoryFilter, styleFilters]);
 
+  // Calculate counts for categories based on OTHER active filters (so you see what's available)
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const query = searchQuery.toLowerCase();
+    
+    PLANTS.forEach(plant => {
+      // Check all filters EXCEPT category
+      const matchesSearch = !query || 
+                          plant.name.toLowerCase().includes(query) ||
+                          plant.description.toLowerCase().includes(query) ||
+                          plant.category.toLowerCase().includes(query);
+      
+      const matchesSunlight = sunlightFilter === 'All' || plant.sunlight === sunlightFilter;
+      const matchesWater = waterFilter === 'All' || plant.water === waterFilter;
+      const matchesSeason = seasonFilter === 'All' || (plant.seasons && plant.seasons.includes(seasonFilter as Season));
+      const matchesStyle = styleFilters.length === 0 || (plant.styles && plant.styles.some(s => styleFilters.includes(s)));
+
+      if (matchesSearch && matchesSunlight && matchesWater && matchesSeason && matchesStyle) {
+        counts[plant.category] = (counts[plant.category] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [searchQuery, sunlightFilter, waterFilter, seasonFilter, styleFilters]);
+
   const toggleStyleFilter = (style: GardenStyle) => {
     setStyleFilters(prev => 
       prev.includes(style) 
@@ -74,6 +98,7 @@ export const usePlantFiltering = () => {
     toggleStyleFilter,
     filteredPlants,
     clearFilters,
-    activeFiltersCount
+    activeFiltersCount,
+    categoryCounts
   };
 };

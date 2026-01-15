@@ -37,7 +37,8 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
     toggleStyleFilter,
     filteredPlants,
     clearFilters,
-    activeFiltersCount
+    activeFiltersCount,
+    categoryCounts
   } = filters;
 
   const hasActiveFilters = activeFiltersCount > 0 || searchQuery !== '';
@@ -150,11 +151,13 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
               {CATEGORIES_WITH_ICONS.map(cat => {
                 const Icon = cat.icon;
                 const isActive = categoryFilter === cat.value;
+                const count = categoryCounts[cat.value] || 0;
+                
                 return (
                   <button
                     key={cat.value}
                     onClick={() => setCategoryFilter(isActive ? 'All' : cat.value)}
-                    className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-3 border ${
+                    className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border ${
                       isActive 
                         ? 'bg-stone-900 border-stone-900 text-white shadow-lg scale-105' 
                         : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
@@ -162,6 +165,9 @@ export const PlantFilters: React.FC<PlantFiltersProps> = ({ filters, showFilters
                   >
                     <Icon size={16} className={isActive ? 'text-white' : cat.color} />
                     {cat.label}
+                    <span className={`text-[10px] ml-1 px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-400'}`}>
+                      {count}
+                    </span>
                     {isActive && <Check size={14} className="ml-1" />}
                   </button>
                 );

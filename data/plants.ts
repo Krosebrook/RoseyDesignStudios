@@ -196,6 +196,18 @@ export const PLANTS: Plant[] = [
     iconType: 'furniture'
   },
   {
+    id: 'f3',
+    name: 'Adirondack Chair',
+    scientificName: 'Classic Timber Lounger',
+    description: 'The quintessential outdoor relaxation chair, featuring wide armrests and a slanted back for ultimate comfort. Perfect for lazy afternoons, its rustic charm complements natural settings. An enduring classic that fits seamlessly into Cottage gardens, lakeside retreats, and relaxed Xeriscapes.',
+    sunlight: 'Full Sun',
+    water: 'Drought-tolerant',
+    imageUrl: 'https://images.unsplash.com/photo-1589139498294-17796d669389?auto=format&fit=crop&w=800&q=80',
+    category: 'Furniture',
+    styles: ['Cottage', 'Xeriscape'],
+    iconType: 'furniture'
+  },
+  {
     id: 's1',
     name: 'Cedar Pergola',
     scientificName: 'Structural Woodwork',
@@ -217,6 +229,30 @@ export const PLANTS: Plant[] = [
     imageUrl: 'https://images.unsplash.com/photo-1558904541-efa8c1167305?auto=format&fit=crop&w=800&q=80',
     category: 'Structure',
     styles: ['Modern', 'Woodland', 'Minimalist', 'Formal'],
+    iconType: 'structure'
+  },
+  {
+    id: 's3',
+    name: 'Stone Lantern',
+    scientificName: 'Kasuga-dōrō',
+    description: 'A traditional Japanese stone lantern that serves as both a sculptural focal point and a gentle light source. Carved from granite, it weathers beautifully, accumulating moss over time. An essential element for establishing scale and atmosphere in Zen gardens, Woodland paths, and contemplative spaces.',
+    sunlight: 'Partial Shade',
+    water: 'Drought-tolerant',
+    imageUrl: 'https://images.unsplash.com/photo-1498642034035-c35398bc5eb7?auto=format&fit=crop&w=800&q=80',
+    category: 'Structure',
+    styles: ['Zen', 'Woodland'],
+    iconType: 'structure'
+  },
+  {
+    id: 'p1',
+    name: 'Stepping Stones',
+    scientificName: 'Natural Flagstone',
+    description: 'Irregular flagstones placed to create a natural, meandering path that invites exploration at a slower pace. They integrate seamlessly into groundcover or gravel, minimizing impact on the soil. Perfect for guiding flow through Zen gardens, Cottage borders, and Modern minimalist layouts.',
+    sunlight: 'Full Sun',
+    water: 'Drought-tolerant',
+    imageUrl: 'https://images.unsplash.com/photo-1596637500140-52cb22bb2d97?auto=format&fit=crop&w=800&q=80',
+    category: 'Structure',
+    styles: ['Zen', 'Cottage', 'Modern'],
     iconType: 'structure'
   },
   {
